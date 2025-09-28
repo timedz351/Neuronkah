@@ -6,7 +6,7 @@ using neuronka.dataLoading;
 
 class Program
 {
-    private static int _batchSize = 10000;
+    private static int _batchSize = 60000;
     static void Main()
     {
         // LOADING
@@ -43,7 +43,7 @@ class Program
         // TEST MODEL
         var accuracy = ModelTester.TestModel(W1, b1, W2, b2, testImages, testLabels);
         Console.WriteLine($"Test accuracy: {accuracy:P2}\n");
-        Console.WriteLine($"Model ran in {fullTimer.ElapsedMilliseconds/ 6000} min");
+        Console.WriteLine($"Model ran in {fullTimer.ElapsedMilliseconds/ 60000} min");
 
     }   
     
@@ -75,9 +75,11 @@ class Program
                 var (_, _, _, A2_full) = ForwardProp(W1, b1, W2, b2, X_batch);
                 int[] predictions = GetPredictions(A2_full);
                 float acc = GetAccuracy(predictions, Y_batch);
-                var estTime = (epochTimer.ElapsedMilliseconds - epochDelta) / 1000 * (iterations / 10) / 60f;
+                var estTime = (epochTimer.ElapsedMilliseconds - epochDelta) / 1000f * ((iterations - iter) / 10f) / 60f;
+                var mins = float.Floor(estTime);
+                var secs = (estTime - mins) * 60f;
                 epochDelta = epochTimer.ElapsedMilliseconds;
-                Console.WriteLine($"Iteration {iter}, Accuracy: {acc:P2}, Time {epochTimer.ElapsedMilliseconds/1000}s, est Time to finish: {estTime}min");
+                Console.WriteLine($"Iteration {iter}, Accuracy: {acc:P2}, Time {epochTimer.ElapsedMilliseconds/1000}s, est Time to finish: {mins}m {secs.ToString("0")}s");
             }
         }
 
@@ -87,9 +89,9 @@ class Program
     private static (float[,] W1, float[,] b1, float[,] W2, float[,] b2) InitParams(float factor = 0.01f)
     {
         var rand = new Random();
-        float[,] W1 = new float[30, 784];
-        float[,] b1 = new float[30, 1];
-        float[,] W2 = new float[10, 30];
+        float[,] W1 = new float[10, 784];
+        float[,] b1 = new float[10, 1];
+        float[,] W2 = new float[10, 10];
         float[,] b2 = new float[10, 1];
 
         for (int i = 0; i < 10; i++)
