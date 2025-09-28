@@ -8,7 +8,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d15f2406-aea6-4b8d-bba6-9e1fa4672d91" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/neuronka/src/network/ActivationFunctions.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/neuronka/src/network/MatrixUtils.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/neuronka/src/network/ModelTester.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Neuronkah/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Neuronkah/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neuronka/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/bin/Debug/net9.0/neuronka.dll" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/bin/Debug/net9.0/neuronka.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/bin/Debug/net9.0/neuronka.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/bin/Debug/net9.0/neuronka.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.csproj.CoreCompileInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.dll" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/ref/neuronka.dll" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/ref/neuronka.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/refint/neuronka.dll" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/refint/neuronka.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/src/dataLoading/DataLoader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/src/dataLoading/DataLoader.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,7 +36,10 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/Neuronkah/src/dataLoading/DataLoading.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/neuronka/src/dataLoading/DataLoader.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/neuronka/src/network/ActivationFunctions.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/neuronka/src/network/MatrixUtils.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/neuronka/src/network/ModelTester.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProjectColorInfo"><![CDATA[{
@@ -80,7 +97,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1759071403314</updated>
-      <workItem from="1759071404596" duration="4792000" />
+      <workItem from="1759071404596" duration="19798000" />
     </task>
     <task id="LOCAL-00001" summary="init commit, added data loading">
       <option name="closed" value="true" />
@@ -90,7 +107,15 @@
       <option name="project" value="LOCAL" />
       <updated>1759075437536</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Reworked dataloading types">
+      <option name="closed" value="true" />
+      <created>1759077174595</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1759077174595</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -101,7 +126,8 @@
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="init commit, added data loading" />
-    <option name="LAST_COMMIT_MESSAGE" value="init commit, added data loading" />
+    <MESSAGE value="Reworked dataloading types" />
+    <option name="LAST_COMMIT_MESSAGE" value="Reworked dataloading types" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

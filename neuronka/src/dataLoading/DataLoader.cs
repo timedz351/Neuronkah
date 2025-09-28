@@ -1,6 +1,5 @@
 namespace neuronka.dataLoading;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -29,72 +28,69 @@ public class DataLoader
     }
 
     /// <summary>
-    /// Loads image data from CSV.
-    /// Each image is expected to be a flat array of integers (0-255).
-    /// Returns a list of image arrays.
+    /// Loads images from CSV into a float[,] array of shape (numFeatures, numSamples)
     /// </summary>
-    public List<int[]> LoadImages(string imagesFilePath)
+    public float[,] LoadImages(string imagesFilePath)
     {
-        var images = new List<int[]>();
+        var lines = File.ReadLines(imagesFilePath).ToArray();
+        int numSamples = lines.Length;
+        var images = new float[_expectedImageSize, numSamples];
 
-        foreach (var line in File.ReadLines(imagesFilePath))
+        for (int j = 0; j < numSamples; j++)
         {
-            // Split CSV values and parse them as integers
-            int[] pixels = line
+            var pixels = lines[j]
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => int.Parse(s.Trim()))
+                .Select(s => float.Parse(s.Trim()))
                 .ToArray();
 
-            images.Add(pixels);
+            if (pixels.Length != _expectedImageSize)
+                throw new Exception($"Image {j} has invalid size");
+
+            for (int i = 0; i < _expectedImageSize; i++)
+            {
+                images[i, j] = pixels[i] / 255f;
+            }
         }
 
         return images;
     }
 
     /// <summary>
-    /// Loads labels from a file (one label per line).
+    /// Loads labels into an int[] array
     /// </summary>
-    public List<int> LoadLabels(string labelsFilePath)
+    public int[] LoadLabels(string labelsFilePath)
     {
-        var labels = new List<int>();
+        var lines = File.ReadLines(labelsFilePath).ToArray();
+        var labels = new int[lines.Length];
 
-        foreach (var line in File.ReadLines(labelsFilePath))
+        for (int i = 0; i < lines.Length; i++)
         {
-            if (int.TryParse(line.Trim(), out int label))
-            {
-                labels.Add(label);
-            }
+            if (!int.TryParse(lines[i].Trim(), out labels[i]))
+                throw new Exception($"Invalid label at line {i}");
         }
 
         return labels;
     }
 
     /// <summary>
-    /// Loads both images and labels together.
-    /// Returns a list of tuples: (imageData, label)
+    /// Loads both images and labels together
+    /// Returns (images, labels)
     /// </summary>
-    public (List<int[]> Images, List<int> Labels) LoadDataset(string imagesFilePath,  string labelsFilePath)
+    public (float[,] Images, int[] Labels) LoadDataset(string imagesFilePath, string labelsFilePath)
     {
         var images = LoadImages(imagesFilePath);
         var labels = LoadLabels(labelsFilePath);
 
-        if (images.Count != labels.Count)
+        if (images.GetLength(1) != labels.Length)
             throw new Exception("Number of images and labels do not match!");
-
-        var data = new List<(int[] Image, int Label)>();
-
-        for (int i = 0; i < images.Count; i++)
-        {
-            if (images[i].Count() != _expectedImageSize)
-            {
-                throw new Exception($"Image {i} has invalid size");
-            }
-        }
 
         return (images, labels);
     }
-    
-    public ((List<int[]> Images, List<int> Labels) Train, (List<int[]> Images, List<int> Labels) Test) LoadData()
+
+    /// <summary>
+    /// Loads train and test datasets
+    /// </summary>
+    public ((float[,] Images, int[] Labels) Train, (float[,] Images, int[] Labels) Test) LoadData()
     {
         var trainData = LoadDataset(_trainImagesPath, _trainLabelsPath);
         var testData = LoadDataset(_testImagesPath, _testLabelsPath);
