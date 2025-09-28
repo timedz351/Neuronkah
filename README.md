@@ -1,1 +1,1 @@
-Download č .csv datasets and put in neuronka/data
+Download 4 .csv datasets and put in neuronka/data
