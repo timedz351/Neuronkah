@@ -12,3 +12,4 @@
 /Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.pdb
 /Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.genruntimeconfig.cache
 /Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/ref/neuronka.dll
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.sourcelink.json

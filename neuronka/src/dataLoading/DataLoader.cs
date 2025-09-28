@@ -73,7 +73,7 @@ public class DataLoader
     /// Loads both images and labels together.
     /// Returns a list of tuples: (imageData, label)
     /// </summary>
-    public List<(int[] Image, int Label)> LoadDataset(string imagesFilePath,  string labelsFilePath)
+    public (List<int[]> Images, List<int> Labels) LoadDataset(string imagesFilePath,  string labelsFilePath)
     {
         var images = LoadImages(imagesFilePath);
         var labels = LoadLabels(labelsFilePath);
@@ -89,13 +89,12 @@ public class DataLoader
             {
                 throw new Exception($"Image {i} has invalid size");
             }
-            data.Add((images[i], labels[i]));
         }
 
-        return data;
+        return (images, labels);
     }
     
-    public (List<(int[] Image, int Label)> Train, List<(int[] Image, int Label)> Test) LoadData()
+    public ((List<int[]> Images, List<int> Labels) Train, (List<int[]> Images, List<int> Labels) Test) LoadData()
     {
         var trainData = LoadDataset(_trainImagesPath, _trainLabelsPath);
         var testData = LoadDataset(_testImagesPath, _testLabelsPath);
