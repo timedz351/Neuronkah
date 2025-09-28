@@ -1,0 +1,14 @@
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/bin/Debug/net9.0/neuronka
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/bin/Debug/net9.0/neuronka.deps.json
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/bin/Debug/net9.0/neuronka.runtimeconfig.json
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/bin/Debug/net9.0/neuronka.dll
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/bin/Debug/net9.0/neuronka.pdb
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.GeneratedMSBuildEditorConfig.editorconfig
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.csproj.CoreCompileInputs.cache
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.dll
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/refint/neuronka.dll
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.pdb
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/neuronka.genruntimeconfig.cache
+/Users/timedz351/RiderProjects/Neuronkah/neuronka/obj/Debug/net9.0/ref/neuronka.dll
