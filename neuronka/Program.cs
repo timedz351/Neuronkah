@@ -6,9 +6,9 @@ using neuronka.dataLoading;
 
 class Program
 {
-    private static int _batchSize = 1000;
-    private static int _iterations = 500;
-    private static float _alpha = 0.01f;
+    private static int _batchSize = 5000;
+    private static int _iterations = 250;
+    private static float _alpha = 0.1f;
     static void Main()
     {
         // LOADING
@@ -91,20 +91,22 @@ class Program
     private static (float[,] W1, float[,] b1, float[,] W2, float[,] b2) InitParams(float factor = 0.01f)
     {
         var rand = new Random();
-        float[,] W1 = new float[10, 784];
-        float[,] b1 = new float[10, 1];
-        float[,] W2 = new float[10, 10];
+        float[,] W1 = new float[30, 784];
+        float[,] b1 = new float[30, 1];
+        float[,] W2 = new float[10, 30];
         float[,] b2 = new float[10, 1];
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 30; i++)
         {
             for (int j = 0; j < 784; j++)
-                W1[i, j] = (float)(rand.NextDouble() * factor);
-
-            for (int j = 0; j < 10; j++)
-                W2[i, j] = (float)(rand.NextDouble() * factor);
+                W1[i, j] = (float)((rand.NextDouble() - 0.5d) * factor);
         }
-
+        
+        for (int i = 0; i < 10; i++)
+        {
+            for (int j = 0; j < 30; j++)
+                W2[i, j] = (float)((rand.NextDouble() - 0.5d) * factor);
+        }
         return (W1, b1, W2, b2);
     }
     
@@ -113,6 +115,7 @@ class Program
     {
         float[,] Z1 = MatrixUtils.Add(MatrixUtils.Dot(W1, X), b1);
         float[,] A1 = ActivationFunctions.ReLU(Z1);
+        
         float[,] Z2 = MatrixUtils.Add(MatrixUtils.Dot(W2, A1), b2);
         float[,] A2 = ActivationFunctions.Softmax(Z2);
         return (Z1, A1, Z2, A2);
