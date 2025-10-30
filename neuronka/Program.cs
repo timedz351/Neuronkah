@@ -6,7 +6,9 @@ using neuronka.dataLoading;
 
 class Program
 {
-    private static int _batchSize = 60000;
+    private static int _batchSize = 1000;
+    private static int _iterations = 500;
+    private static float _alpha = 0.01f;
     static void Main()
     {
         // LOADING
@@ -36,7 +38,7 @@ class Program
         
         // TRAIN MODEL
         var trainingTimer = Stopwatch.StartNew();
-        var (W1, b1, W2, b2) = GradientDescent(X_batch, Y_batch, 0.10f, 500, batchSize);
+        var (W1, b1, W2, b2) = GradientDescent(X_batch, Y_batch, _alpha, _iterations, batchSize);
         trainingTimer.Stop();
         Console.WriteLine($"Training completed in {trainingTimer.ElapsedMilliseconds} ms");
 
