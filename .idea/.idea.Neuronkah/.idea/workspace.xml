@@ -8,21 +8,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d15f2406-aea6-4b8d-bba6-9e1fa4672d91" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/neuronka/src/network/ActivationFunctions.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/neuronka/src/network/MatrixUtils.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/neuronka/src/network/ModelTester.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Neuronkah/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Neuronkah/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neuronka/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/bin/Debug/net9.0/neuronka.dll" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/bin/Debug/net9.0/neuronka.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/bin/Debug/net9.0/neuronka.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/bin/Debug/net9.0/neuronka.pdb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.csproj.CoreCompileInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.dll" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/ref/neuronka.dll" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/ref/neuronka.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/refint/neuronka.dll" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/refint/neuronka.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/src/dataLoading/DataLoader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/src/dataLoading/DataLoader.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/src/network/MatrixUtils.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/src/network/MatrixUtils.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,9 +32,9 @@
     <setting file="file://$PROJECT_DIR$/neuronka/src/network/ModelTester.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="33KguveRusqUaHAGVnX1zfAmfMn" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -55,7 +45,8 @@
     ".NET Project.Neuronkah.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "timedz",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -98,6 +89,7 @@
       <option name="presentableId" value="Default" />
       <updated>1759071403314</updated>
       <workItem from="1759071404596" duration="19798000" />
+      <workItem from="1762704082802" duration="1494000" />
     </task>
     <task id="LOCAL-00001" summary="init commit, added data loading">
       <option name="closed" value="true" />
