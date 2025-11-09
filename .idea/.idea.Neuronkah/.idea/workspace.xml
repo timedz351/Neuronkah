@@ -9,6 +9,7 @@
   <component name="ChangeListManager">
     <list default="true" id="d15f2406-aea6-4b8d-bba6-9e1fa4672d91" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Neuronkah/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Neuronkah/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/neuronka/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neuronka/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/Program.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache" afterDir="false" />
@@ -115,6 +116,17 @@
   </component>
   <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="init commit, added data loading" />

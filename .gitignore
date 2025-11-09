@@ -1,0 +1,11 @@
+﻿neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs
+neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache
+*.editorconfig
+*.json
+*.cache
+*.info
+neuronka/obj/neuronka.csproj.nuget.dgspec.json
+*.props
+neuronka/obj/project.assets.json
+*.cache
+*.json

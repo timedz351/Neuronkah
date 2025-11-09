@@ -6,9 +6,11 @@ using neuronka.dataLoading;
 
 class Program
 {
-    private static int _batchSize = 5000;
+    private static int _batchSize = 60000;
     private static int _iterations = 250;
-    private static float _alpha = 0.1f;
+    private static float _alpha = 0.4f;
+    
+    private static int _hidden_layer_size = 30;
     static void Main()
     {
         // LOADING
@@ -91,21 +93,18 @@ class Program
     private static (float[,] W1, float[,] b1, float[,] W2, float[,] b2) InitParams(float factor = 0.01f)
     {
         var rand = new Random();
-        float[,] W1 = new float[30, 784];
-        float[,] b1 = new float[30, 1];
-        float[,] W2 = new float[10, 30];
+        float[,] W1 = new float[_hidden_layer_size, 784];
+        float[,] b1 = new float[_hidden_layer_size, 1];
+        float[,] W2 = new float[10, _hidden_layer_size];
         float[,] b2 = new float[10, 1];
 
         for (int i = 0; i < 30; i++)
         {
             for (int j = 0; j < 784; j++)
-                W1[i, j] = (float)((rand.NextDouble() - 0.5d) * factor);
-        }
-        
-        for (int i = 0; i < 10; i++)
-        {
-            for (int j = 0; j < 30; j++)
-                W2[i, j] = (float)((rand.NextDouble() - 0.5d) * factor);
+                W1[i, j] = (float)(rand.NextDouble() * factor);
+
+            for (int j = 0; j < _hidden_layer_size; j++)
+                W2[i, j] = (float)(rand.NextDouble() * factor);
         }
         return (W1, b1, W2, b2);
     }
@@ -113,14 +112,26 @@ class Program
     public static (float[,] Z1, float[,] A1, float[,] Z2, float[,] A2) ForwardProp(
         float[,] W1, float[,] b1, float[,] W2, float[,] b2, float[,] X)
     {
+        /*
         float[,] Z1 = MatrixUtils.Add(MatrixUtils.Dot(W1, X), b1);
         float[,] A1 = ActivationFunctions.ReLU(Z1);
         
         float[,] Z2 = MatrixUtils.Add(MatrixUtils.Dot(W2, A1), b2);
         float[,] A2 = ActivationFunctions.Softmax(Z2);
-        return (Z1, A1, Z2, A2);
+        */
+        var (Z1, A1) = OneStepForwardProp(W1, b1, ActivationFunctions.ReLU, X);
+        var (Z2, A2) = OneStepForwardProp(W2, b2, ActivationFunctions.Softmax, A1);
+        return (Z1,A1, Z2, A2);
     }
 
+    public static (float[,] Z, float[,] A) OneStepForwardProp(
+        float[,] W1, float[,] b1, Func<float[,], float[,]> activationFun, float[,] X)
+    {
+        float[,] Z = MatrixUtils.Add(MatrixUtils.Dot(W1, X), b1);
+        float[,] A = activationFun(Z);
+        return (Z, A);
+    }
+    
     public static (float[,] dW1, float[,] db1, float[,] dW2, float[,] db2) BackwardProp(
         float[,] Z1, float[,] A1, float[,] Z2, float[,] A2,
         float[,] W2, float[,] X, int[] Y)

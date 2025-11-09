@@ -134,3 +134,8 @@ _NCrunch*
 
 # Custom
 *.csv
+*.dll
+*.cache
+*.props
+*.xml
+*.json
