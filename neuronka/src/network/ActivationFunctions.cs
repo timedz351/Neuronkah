@@ -38,4 +38,46 @@ public class ActivationFunctions
         }
         return A;
     }
+    
+    public static float[,] Sigmoid(float[,] Z)
+    {
+        int rows = Z.GetLength(0), cols = Z.GetLength(1);
+        var A = new float[rows, cols];
+        for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            A[i, j] = 1f / (1f + MathF.Exp(-Z[i, j]));
+        return A;
+    }
+    
+    public static float[,] Sigmoid_Deriv(float[,] Z)
+    {
+        var sigmoid = Sigmoid(Z);
+        int rows = Z.GetLength(0), cols = Z.GetLength(1);
+        var deriv = new float[rows, cols];
+        for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            deriv[i, j] = sigmoid[i, j] * (1 - sigmoid[i, j]);
+        return deriv;
+    }
+    
+    public static float[,] Tanh(float[,] Z)
+    {
+        int rows = Z.GetLength(0), cols = Z.GetLength(1);
+        var A = new float[rows, cols];
+        for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            A[i, j] = MathF.Tanh(Z[i, j]);
+        return A;
+    }
+    
+    public static float[,] Tanh_Deriv(float[,] Z)
+    {
+        var tanh = Tanh(Z);
+        int rows = Z.GetLength(0), cols = Z.GetLength(1);
+        var deriv = new float[rows, cols];
+        for (int i = 0; i < rows; i++)
+        for (int j = 0; j < cols; j++)
+            deriv[i, j] = 1 - tanh[i, j] * tanh[i, j];
+        return deriv;
+    }
 }
