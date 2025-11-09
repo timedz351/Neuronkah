@@ -53,7 +53,10 @@ class Program
         // TEST MODEL
         var accuracy = ModelTester.TestModel(network, testImages, testLabels);
         Console.WriteLine($"Test accuracy: {accuracy:P2}\n");
-        Console.WriteLine($"Model ran in {fullTimer.ElapsedMilliseconds / 60000} min");
+        var elapsed = fullTimer.Elapsed;
+        int minutes = (int)elapsed.TotalMinutes;
+        int seconds = elapsed.Seconds;
+        Console.WriteLine($"Model ran in {minutes}min {seconds}s");
     }
 
     static ((float[,] Images, int[] Labels) Train, (float[,] Images, int[] Labels) Test) LoadData(string projectRoot)

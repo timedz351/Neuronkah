@@ -25,16 +25,24 @@ public class Layer
     InitializeParameters();
   }
 
-  private void InitializeParameters(float factor = 0.01f)
+  private void InitializeParameters()
   {
     var rand = new Random();
     Weights = new float[OutputSize, InputSize];
     Biases = new float[OutputSize, 1];
 
+    // He initialization for ReLU, Xavier for tanh/sigmoid
+    float scale = Activation switch
+    {
+      "relu" => (float)Math.Sqrt(2.0 / InputSize),
+      "tanh" or "sigmoid" => (float)Math.Sqrt(1.0 / InputSize),
+      _ => 0.01f
+    };
+
     for (int i = 0; i < OutputSize; i++)
     {
       for (int j = 0; j < InputSize; j++)
-        Weights[i, j] = (float)((rand.NextDouble() - 0.5d) * factor);
+        Weights[i, j] = (float)((rand.NextDouble() - 0.5) * 2 * scale);
     }
   }
 
