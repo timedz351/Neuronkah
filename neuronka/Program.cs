@@ -40,9 +40,10 @@ class Program
         Console.WriteLine($"Y_Batch size: {Y_batch.GetLength(0)}");
 
         // CREATE NETWORK
+        var rand = new Random(42);
         var network = new NeuralNetwork("cross_entropy");
-        network.AddLayer(new Layer("hidden1", 784, 30, "relu"));
-        network.AddLayer(new Layer("output", 30, 10, "softmax"));
+        network.AddLayer(new Layer(rand, "hidden1", 784, 30, "relu"));
+        network.AddLayer(new Layer(rand, "output", 30, 10, "softmax"));
 
         // TRAIN MODEL
         var trainingTimer = Stopwatch.StartNew();

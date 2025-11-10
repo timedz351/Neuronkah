@@ -33,8 +33,8 @@ public class NeuralNetwork
     return activation;
   }
 
-  public void Backward(float[,] X, int[] Y, float learningRate, int batchSize)
-  {
+public void Backward(float[,] X, int[] Y, float learningRate, int batchSize)
+{
     // Convert labels to one-hot encoding for the output layer
     float[,] Y_onehot = OneHot(Y, Layers[^1].OutputSize);
 
@@ -44,19 +44,23 @@ public class NeuralNetwork
     // Backward pass through layers
     for (int i = Layers.Count - 1; i >= 0; i--)
     {
-      var layer = Layers[i];
-      float[,] prevActivation = i == 0 ? X : Layers[i - 1].A;
+        var layer = Layers[i];
+        float[,] prevActivation = i == 0 ? X : Layers[i - 1].A;
 
-      var (dW, db) = layer.Backward(dA, prevActivation, batchSize);
-      layer.UpdateParameters(dW, db, learningRate);
+        // Calculate gradients for current layer
+        var (dW, db) = layer.Backward(dA, prevActivation, batchSize);
+        
+        // Update current layer's parameters
+        layer.UpdateParameters(dW, db, learningRate);
 
-      if (i > 0)
-      {
-        var prevWeights = Layers[i].Weights;
-        dA = layer.CalculateGradient(dA, prevWeights);
-      }
+        // Calculate dA for next layer (going backward)
+        if (i > 0)
+        {
+            // CORRECTED: Use current layer's weights to propagate gradient backward
+            dA = Layers[i - 1].CalculateGradient(dA, layer.Weights);
+        }
     }
-  }
+}
 
   public void Train(float[,] X, int[] Y, float learningRate, int iterations, int batchSize = 64)
   {

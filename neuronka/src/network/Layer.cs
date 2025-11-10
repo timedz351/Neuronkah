@@ -15,19 +15,18 @@ public class Layer
   public float[,] A { get; set; }
   public float[,] Input { get; set; }
 
-  public Layer(string name, int inputSize, int outputSize, string activation = "relu")
+  public Layer(Random rand, string name, int inputSize, int outputSize, string activation = "relu")
   {
     Name = name;
     InputSize = inputSize;
     OutputSize = outputSize;
     Activation = activation;
 
-    InitializeParameters();
+    InitializeParameters(rand);
   }
 
-  private void InitializeParameters()
+  private void InitializeParameters(Random rand)
   {
-    var rand = new Random();
     Weights = new float[OutputSize, InputSize];
     Biases = new float[OutputSize, 1];
 
@@ -80,7 +79,6 @@ public class Layer
         "relu" => ActivationFunctions.ReLU_Deriv(Z),
         "sigmoid" => ActivationFunctions.Sigmoid_Deriv(Z),
         "tanh" => ActivationFunctions.Tanh_Deriv(Z),
-        "linear" => CreateOnesMatrix(Z.GetLength(0), Z.GetLength(1)),
         _ => throw new ArgumentException($"Unknown activation function: {Activation}")
       };
 
@@ -93,7 +91,7 @@ public class Layer
     return (dW, db);
   }
 
-  public float[,] CalculateGradient(float[,] dA, float[,] prevWeights)
+  public float[,] CalculateGradient(float[,] dA, float[,] currentWeights)
   {
     float[,] dZ;
 
@@ -115,7 +113,8 @@ public class Layer
       dZ = MatrixUtils.Multiply(dA, activationDeriv);
     }
 
-    return MatrixUtils.Dot(MatrixUtils.Transpose(prevWeights), dZ);
+    // CORRECTED: Propagate gradient backward using current layer's weights
+    return MatrixUtils.Dot(MatrixUtils.Transpose(currentWeights), dZ);
   }
 
   public void UpdateParameters(float[,] dW, float[,] db, float learningRate)
