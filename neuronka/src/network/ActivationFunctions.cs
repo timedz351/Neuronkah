@@ -1,4 +1,5 @@
 namespace neuronka;
+using System.Threading.Tasks;
 
 public class ActivationFunctions
 {
@@ -6,9 +7,19 @@ public class ActivationFunctions
     {
         int rows = Z.GetLength(0), cols = Z.GetLength(1);
         var A = new float[rows, cols];
+
+        /*  === SERIAL ===
         for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            A[i, j] = Math.Max(0, Z[i, j]);
+            for (int j = 0; j < cols; j++)
+                A[i, j] = Math.Max(0, Z[i, j]);
+        */
+
+        // === PARALLEL ===
+        Parallel.For(0, rows, i =>
+        {
+            for (int j = 0; j < cols; j++)
+                A[i, j] = Math.Max(0f, Z[i, j]);
+        });
         return A;
     }
 
@@ -16,9 +27,19 @@ public class ActivationFunctions
     {
         int rows = Z.GetLength(0), cols = Z.GetLength(1);
         var dZ = new float[rows, cols];
+
+        /*  === SERIAL ===
         for (int i = 0; i < rows; i++)
-        for (int j = 0; j < cols; j++)
-            dZ[i, j] = Z[i, j] > 0 ? 1f : 0f;
+            for (int j = 0; j < cols; j++)
+                dZ[i, j] = Z[i, j] > 0 ? 1f : 0f;
+        */
+
+        // === PARALLEL ===
+        Parallel.For(0, rows, i =>
+        {
+            for (int j = 0; j < cols; j++)
+                dZ[i, j] = Z[i, j] > 0f ? 1f : 0f;
+        });
         return dZ;
     }
 

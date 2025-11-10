@@ -6,105 +6,153 @@ using neuronka.dataLoading;
 
 class Program
 {
-    private static int _batchSize = 60000;
-    private static int _iterations = 250;
-    private static float _alpha = 0.4f;
+    private static int _batchSize = 32;
+    private static int _epochs = 10;
+    private static float _alpha = 0.1f;
     
-    private static int _hidden_layer_size = 30;
+    private static int _hidden_layer_size = 128;
+    private static float _momentum = 0.9f;   // 0.8–0.9 is typical
+
     static void Main()
     {
         // LOADING
-        var fullTimer = Stopwatch.StartNew();
         string projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
-        var loaderTimer = Stopwatch.StartNew();
-        var (trainData, testData) = LoadData(projectRoot);
-        var (trainImages, trainLabels) = trainData;
-        var (testImages, testLabels) = testData;
-        Console.WriteLine($"Loaded {trainImages.GetLength(1)} images and labels for training");
-        Console.WriteLine($"Loaded {testImages.GetLength(1)} images and labels for testing");
-        loaderTimer.Stop();
-        Console.WriteLine($"Data loaded in {loaderTimer.ElapsedMilliseconds} ms");
+        var loader = new DataLoader(projectRoot);
+        var (train, test) = loader.LoadData();
+        var (trainX, trainY) = train;   // shape (784, 60 000) , length 60 000
+        var (testX,  testY)  = test;
 
-        // CREATE SMALLER BATCH
-        int batchSize = _batchSize;
-        float[,] X_batch = new float[trainImages.GetLength(0), batchSize];
-        int[] Y_batch = new int[batchSize];
-        for (int j = 0; j < batchSize; j++)
-        {
-            for (int i = 0; i < trainImages.GetLength(0); i++)
-                X_batch[i, j] = trainImages[i, j]; // copy column
-            Y_batch[j] = trainLabels[j];
-        }
-        Console.WriteLine($"X_Batch size: {X_batch.GetLength(0)}x{X_batch.GetLength(1)}");
-        Console.WriteLine($"Y_Batch size: {Y_batch.GetLength(0)}");
-        
-        // TRAIN MODEL
-        var trainingTimer = Stopwatch.StartNew();
-        var (W1, b1, W2, b2) = GradientDescent(X_batch, Y_batch, _alpha, _iterations, batchSize);
-        trainingTimer.Stop();
-        Console.WriteLine($"Training completed in {trainingTimer.ElapsedMilliseconds} ms");
+        Console.WriteLine($"Loaded {trainY.Length} train, {testY.Length} test");
 
-        // TEST MODEL
-        var accuracy = ModelTester.TestModel(W1, b1, W2, b2, testImages, testLabels);
-        Console.WriteLine($"Test accuracy: {accuracy:P2}\n");
-        Console.WriteLine($"Model ran in {fullTimer.ElapsedMilliseconds/ 60000} min");
+        // ---------- train with mini-batches ----------
+        var sw = Stopwatch.StartNew();
+        var (W1, b1, W2, b2) = GradientDescent(trainX, trainY, _alpha, _epochs, _batchSize);
+        sw.Stop();
+        Console.WriteLine($"Training done in {sw.Elapsed.TotalMinutes:F1} min");
+
+        // ---------- evaluate ----------
+        float acc = ModelTester.TestModel(W1, b1, W2, b2, testX, testY);
+        Console.WriteLine($"Test accuracy {acc:P2}");
 
     }   
-    
-    public static (float[,] W1, float[,] b1, float[,] W2, float[,] b2) GradientDescent(
-        float[,] X_batch, int[] Y_batch, float alpha, int iterations, int batchSize = 64)
+    static void Shuffle(float[,] x, int[] y)
     {
-        var epochTimer = Stopwatch.StartNew();
-        var epochDelta = 0l;
-        
-        var (W1, b1, W2, b2) = InitParams();
-        int m = Y_batch.Length;
-        
-        for (int iter = 0; iter < iterations; iter++)
+        int m = y.Length;
+        var rng = new Random();
+        for (int i = m - 1; i > 0; i--)
         {
-            for (int start = 0; start < m; start += batchSize)
+            int j = rng.Next(i + 1);
+            // swap labels
+            (y[i], y[j]) = (y[j], y[i]);
+            // swap columns in x
+            for (int r = 0; r < x.GetLength(0); r++)
+                (x[r, i], x[r, j]) = (x[r, j], x[r, i]);
+        }
+    }
+    
+    public static (float[,] W1, float[,] b1, float[,] W2, float[,] b2)
+        GradientDescent(float[,] X_full, int[] Y_full,
+            float alpha, int epochs, int batchSize = 64)
+    {
+        var (W1, b1, W2, b2) = InitParams();
+        int m = Y_full.Length;
+        int batchesPerEpoch = (int)Math.Ceiling((double)m / batchSize);
+
+        // velocity buffers (same shape as parameters)
+        float[,] vW1 = new float[W1.GetLength(0), W1.GetLength(1)];
+        float[,] vb1 = new float[b1.GetLength(0), b1.GetLength(1)];
+        float[,] vW2 = new float[W2.GetLength(0), W2.GetLength(1)];
+        float[,] vb2 = new float[b2.GetLength(0), b2.GetLength(1)];
+
+            
+        for (int epoch = 0; epoch < epochs; epoch++)
+        {
+            // optional: shuffle before every epoch
+            Shuffle(X_full, Y_full);
+
+            for (int b = 0; b < batchesPerEpoch; b++)
             {
-                // Forward pass
-                var (Z1, A1, Z2, A2) = ForwardProp(W1, b1, W2, b2, X_batch);
+                int start = b * batchSize;
+                var (X, Y) = GetMiniBatch(X_full, Y_full, start, batchSize);
 
-                // Backward pass
-                var (dW1, db1, dW2, db2) = BackwardProp(Z1, A1, Z2, A2, W2, X_batch, Y_batch);
-
-                // Update parameters
-                (W1, b1, W2, b2) = UpdateParams(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha);
+                // ----- classic forward / backward / update -----
+                var (Z1, A1, Z2, A2) = ForwardProp(W1, b1, W2, b2, X);
+                var (dW1, db1, dW2, db2) = BackwardProp(Z1, A1, Z2, A2, W2, X, Y);
+                // update parameters with momentum
+                UpdateParamsWithMomentum(
+                    ref W1, ref b1, ref W2, ref b2,
+                    dW1, db1, dW2, db2,
+                    ref vW1, ref vb1, ref vW2, ref vb2,
+                    alpha, _momentum);
             }
-            // Every 10 epochs
-            if (iter % 10 == 0)
+
+            // ---- progress print ----
+            if (epoch % 10 == 0)
             {
-                var (_, _, _, A2_full) = ForwardProp(W1, b1, W2, b2, X_batch);
-                int[] predictions = GetPredictions(A2_full);
-                float acc = GetAccuracy(predictions, Y_batch);
-                var estTime = (epochTimer.ElapsedMilliseconds - epochDelta) / 1000f * ((iterations - iter) / 10f) / 60f;
-                var mins = float.Floor(estTime);
-                var secs = (estTime - mins) * 60f;
-                epochDelta = epochTimer.ElapsedMilliseconds;
-                Console.WriteLine($"Iteration {iter}, Accuracy: {acc:P2}, Time {epochTimer.ElapsedMilliseconds/1000}s, est Time to finish: {mins}m {secs.ToString("0")}s");
+                var (_, _, _, A2) = ForwardProp(W1, b1, W2, b2, X_full); // full set for accuracy
+                float acc = GetAccuracy(GetPredictions(A2), Y_full);
+                Console.WriteLine($"Epoch {epoch,-3}  acc {acc:P2}");
             }
         }
-
         return (W1, b1, W2, b2);
     }
     
-    private static (float[,] W1, float[,] b1, float[,] W2, float[,] b2) InitParams(float factor = 0.01f)
+    static void UpdateParamsWithMomentum(
+        ref float[,] W1, ref float[,] b1, ref float[,] W2, ref float[,] b2,
+        float[,] dW1, float[,] db1, float[,] dW2, float[,] db2,
+        ref float[,] vW1, ref float[,] vb1, ref float[,] vW2, ref float[,] vb2,
+        float alpha, float beta)
     {
-        var rand = new Random();
-        float[,] W1 = new float[_hidden_layer_size, 784];
-        float[,] b1 = new float[_hidden_layer_size, 1];
-        float[,] W2 = new float[10, _hidden_layer_size];
+        int h  = W1.GetLength(0);
+        int d  = W1.GetLength(1);
+        int k  = W2.GetLength(0);
+    
+        // W1, b1
+        for (int i = 0; i < h; i++)
+        {
+            for (int j = 0; j < d; j++)
+            {
+                vW1[i, j] = beta * vW1[i, j] + alpha * dW1[i, j];
+                W1[i, j] -= vW1[i, j];
+            }
+            vb1[i, 0] = beta * vb1[i, 0] + alpha * db1[i, 0];
+            b1[i, 0] -= vb1[i, 0];
+        }
+    
+        // W2, b2
+        for (int i = 0; i < k; i++)
+        {
+            for (int j = 0; j < h; j++)
+            {
+                vW2[i, j] = beta * vW2[i, j] + alpha * dW2[i, j];
+                W2[i, j] -= vW2[i, j];
+            }
+            vb2[i, 0] = beta * vb2[i, 0] + alpha * db2[i, 0];
+            b2[i, 0] -= vb2[i, 0];
+        }
+    }
+    
+    private static (float[,] W1, float[,] b1, float[,] W2, float[,] b2)
+        InitParams(float factor = 0.01f)
+    {
+        Random rand = new Random();
+        int h = _hidden_layer_size;
+        float[,] W1 = new float[h, 784];
+        float[,] b1 = new float[h, 1];
+        float[,] W2 = new float[10, h];
         float[,] b2 = new float[10, 1];
 
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < h; i++)
         {
             for (int j = 0; j < 784; j++)
                 W1[i, j] = (float)(rand.NextDouble() * factor);
-
-            for (int j = 0; j < _hidden_layer_size; j++)
+            b1[i, 0] = 0f;
+        }
+        for (int i = 0; i < 10; i++)
+        {
+            for (int j = 0; j < h; j++)
                 W2[i, j] = (float)(rand.NextDouble() * factor);
+            b2[i, 0] = 0f;
         }
         return (W1, b1, W2, b2);
     }
@@ -207,5 +255,25 @@ class Program
         var loader = new DataLoader(projectRoot);
         var data= loader.LoadData();
         return data;
+    }
+    
+    // Returns a mini-batch sliced from the full data set.
+    // X shape: (784, m)   Y shape: (m,)
+    static (float[,] X, int[] Y) GetMiniBatch(float[,] fullX, int[] fullY, int startIdx, int batchSize)
+    {
+        int feat = fullX.GetLength(0);
+        int last  = Math.Min(startIdx + batchSize, fullY.Length);
+        int real  = last - startIdx;               // last batch can be smaller
+
+        float[,] x = new float[feat, real];
+        int[]    y = new int[real];
+
+        for (int j = 0; j < real; j++)
+        {
+            for (int i = 0; i < feat; i++)
+                x[i, j] = fullX[i, startIdx + j];
+            y[j] = fullY[startIdx + j];
+        }
+        return (x, y);
     }
 }

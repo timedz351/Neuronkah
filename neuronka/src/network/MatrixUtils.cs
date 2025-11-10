@@ -1,20 +1,36 @@
 namespace neuronka;
+using System.Threading.Tasks;
 
 public class MatrixUtils
 {
-public static float[,] Dot(float[,] A, float[,] B)
-{
-    int aRows = A.GetLength(0), aCols = A.GetLength(1);
-    int bRows = B.GetLength(0), bCols = B.GetLength(1);
-    if (aCols != bRows) throw new ArgumentException("Incompatible shapes for Dot.");
+    public static float[,] Dot(float[,] A, float[,] B)
+    {
+        int aRows = A.GetLength(0), aCols = A.GetLength(1);
+        int bRows = B.GetLength(0), bCols = B.GetLength(1);
+        if (aCols != bRows) throw new ArgumentException("Incompatible shapes for Dot.");
 
-    var result = new float[aRows, bCols];
-    for (int i = 0; i < aRows; i++)
-        for (int j = 0; j < bCols; j++)
-            for (int k = 0; k < aCols; k++)
-                result[i, j] += A[i, k] * B[k, j];
-    return result;
-}
+        var result = new float[aRows, bCols];
+
+        /*  === SERIAL ===
+        for (int i = 0; i < aRows; i++)
+            for (int j = 0; j < bCols; j++)
+                for (int k = 0; k < aCols; k++)
+                    result[i, j] += A[i, k] * B[k, j];
+        */
+
+        // === PARALLEL ===
+        Parallel.For(0, aRows, i =>
+        {
+            for (int j = 0; j < bCols; j++)
+            {
+                float sum = 0f;
+                for (int k = 0; k < aCols; k++)
+                    sum += A[i, k] * B[k, j];
+                result[i, j] = sum;
+            }
+        });
+        return result;
+    }
 
 public static float[,] Add(float[,] Z, float[,] b)
 {
@@ -40,9 +56,19 @@ public static float[,] Multiply(float[,] A, float[,] B)
 {
     int rows = A.GetLength(0), cols = A.GetLength(1);
     var result = new float[rows, cols];
+
+    /*  === SERIAL ===
     for (int i = 0; i < rows; i++)
         for (int j = 0; j < cols; j++)
             result[i, j] = A[i, j] * B[i, j];
+    */
+
+    // === PARALLEL ===
+    Parallel.For(0, rows, i =>
+    {
+        for (int j = 0; j < cols; j++)
+            result[i, j] = A[i, j] * B[i, j];
+    });
     return result;
 }
 
@@ -50,9 +76,19 @@ public static float[,] Scale(float[,] A, float scalar)
 {
     int rows = A.GetLength(0), cols = A.GetLength(1);
     var result = new float[rows, cols];
+
+    /*  === SERIAL ===
     for (int i = 0; i < rows; i++)
         for (int j = 0; j < cols; j++)
             result[i, j] = A[i, j] * scalar;
+    */
+
+    // === PARALLEL ===
+    Parallel.For(0, rows, i =>
+    {
+        for (int j = 0; j < cols; j++)
+            result[i, j] = A[i, j] * scalar;
+    });
     return result;
 }
 
