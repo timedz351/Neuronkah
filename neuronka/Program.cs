@@ -8,8 +8,8 @@ using neuronka.dataLoading;
 
 class Program
 {
-    private static int _batchSize = 64;
-    private static int _iterations = 50;
+    private static int _batchSize = 16;
+    private static int _iterations = 85;
     private static float _alpha = 0.001f;
 
     static void Main()
@@ -33,9 +33,9 @@ class Program
         // CREATE NETWORK
         var rand = new Random(42);
         var network = new NeuralNetwork("cross_entropy");
-        network.AddLayer(new Layer(rand, "hidden1", 784, 256, "relu"));
-        network.AddLayer(new Layer(rand, "output", 256, 128, "relu"));
-        network.AddLayer(new Layer(rand, "output", 128, 64, "relu"));
+        network.AddLayer(new Layer(rand, "hidden1", 784, 128, "relu"));
+        // network.AddLayer(new Layer(rand, "output", 256, 128, "relu"));
+        network.AddLayer(new Layer(rand, "hidden2", 128, 64, "relu"));
         network.AddLayer(new Layer(rand, "output", 64, 10, "softmax"));
 
         // TRAIN MODEL

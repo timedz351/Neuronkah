@@ -68,7 +68,7 @@ public class NeuralNetwork
     for (int iter = 0; iter < iterations; iter++)
     {
       // Shuffle data at the start of each epoch
-      var (indices, X_shuffled, Y_shuffled) = ShuffleData(X, Y);
+      var (_, X_shuffled, Y_shuffled) = ShuffleData(X, Y);
       float epochLoss = 0f;
       int batchCount = 0;
 
