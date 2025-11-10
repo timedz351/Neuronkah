@@ -33,34 +33,28 @@ public class NeuralNetwork
     return activation;
   }
 
-public void Backward(float[,] X, int[] Y, float learningRate, int batchSize)
-{
+  public void Backward(float[,] X, int[] Y, float learningRate, int batchSize)
+  {
     // Convert labels to one-hot encoding for the output layer
     float[,] Y_onehot = OneHot(Y, Layers[^1].OutputSize);
 
-    // Calculate initial gradient for output layer
+    // Initial gradient for output layer (softmax + cross entropy): A - Y
     float[,] dA = MatrixUtils.Subtract(Layers[^1].A, Y_onehot);
 
     // Backward pass through layers
     for (int i = Layers.Count - 1; i >= 0; i--)
     {
-        var layer = Layers[i];
-        float[,] prevActivation = i == 0 ? X : Layers[i - 1].A;
+      var layer = Layers[i];
+      float[,] prevActivation = i == 0 ? X : Layers[i - 1].A;
 
-        // Calculate gradients for current layer
-        var (dW, db) = layer.Backward(dA, prevActivation, batchSize);
-        
-        // Update current layer's parameters
-        layer.UpdateParameters(dW, db, learningRate);
-
-        // Calculate dA for next layer (going backward)
-        if (i > 0)
-        {
-            // CORRECTED: Use current layer's weights to propagate gradient backward
-            dA = Layers[i - 1].CalculateGradient(dA, layer.Weights);
-        }
+      // Backward for this layer: returns gradients and dA for previous layer
+      var (dW, db, dA_prev) = layer.Backward(dA, prevActivation, batchSize);
+      // Update after computing dA_prev
+      layer.UpdateParameters(dW, db, learningRate);
+      if (i > 0)
+        dA = dA_prev;
     }
-}
+  }
 
   public void Train(float[,] X, int[] Y, float learningRate, int iterations, int batchSize = 64)
   {
@@ -68,25 +62,38 @@ public void Backward(float[,] X, int[] Y, float learningRate, int batchSize)
     var epochDelta = 0L;
     int m = Y.Length;
 
+    // Calculate number of batches per epoch
+    int batchesPerEpoch = (int)Math.Ceiling((double)m / batchSize);
+
     for (int iter = 0; iter < iterations; iter++)
     {
-      for (int start = 0; start < m; start += batchSize)
-      {
-        // Extract batch (simplified - in practice you'd want proper batching)
-        int end = Math.Min(start + batchSize, m);
-        int currentBatchSize = end - start;
+      // Shuffle data at the start of each epoch
+      var (indices, X_shuffled, Y_shuffled) = ShuffleData(X, Y);
+      float epochLoss = 0f;
+      int batchCount = 0;
 
-        float[,] X_batch = ExtractBatch(X, start, currentBatchSize);
-        int[] Y_batch = Y.Skip(start).Take(currentBatchSize).ToArray();
+      // Process each batch in the epoch
+      for (int batchIndex = 0; batchIndex < batchesPerEpoch; batchIndex++)
+      {
+        var (X_batch, Y_batch) = GetBatch(X_shuffled, Y_shuffled, batchSize, batchIndex, iter);
+        int currentBatchSize = Y_batch.Length;
 
         // Forward pass
         float[,] output = Forward(X_batch);
+
+        // Calculate batch loss (for monitoring)
+        float batchLoss = CalculateLoss(output, Y_batch);
+        epochLoss += batchLoss;
+        batchCount++;
 
         // Backward pass
         Backward(X_batch, Y_batch, learningRate, currentBatchSize);
       }
 
-      // Every 10 epochs
+      // Calculate average loss for the epoch
+      epochLoss /= batchCount;
+
+      // Logging every 10 epochs
       if (iter % 10 == 0)
       {
         float[,] output = Forward(X);
@@ -96,7 +103,10 @@ public void Backward(float[,] X, int[] Y, float learningRate, int batchSize)
         var mins = float.Floor(estTime);
         var secs = (estTime - mins) * 60f;
         epochDelta = epochTimer.ElapsedMilliseconds;
-        Console.WriteLine($"Iteration {iter}, Accuracy: {acc:P2}, Time {epochTimer.ElapsedMilliseconds / 1000}s, est Time to finish: {mins}m {secs.ToString("0")}s");
+
+        Console.WriteLine($"Epoch {iter}, Loss: {epochLoss:F4}, Accuracy: {acc:P2}, " +
+                        $"Time {epochTimer.ElapsedMilliseconds / 1000}s, " +
+                        $"ETA: {mins}m {secs:0}s");
       }
     }
   }
@@ -157,5 +167,108 @@ public void Backward(float[,] X, int[] Y, float learningRate, int batchSize)
     }
 
     return batch;
+  }
+  private (float[,] X_batch, int[] Y_batch) GetBatch(float[,] X, int[] Y, int batchSize, int batchIndex, int epoch)
+  {
+    int m = Y.Length;
+    int features = X.GetLength(0);
+
+    int start = batchIndex * batchSize;
+    int end = Math.Min(start + batchSize, m);
+    int currentBatchSize = end - start;
+
+    float[,] X_batch = new float[features, currentBatchSize];
+    int[] Y_batch = new int[currentBatchSize];
+
+    // Copy batch data
+    for (int j = 0; j < currentBatchSize; j++)
+    {
+      int dataIndex = start + j;
+      Y_batch[j] = Y[dataIndex];
+
+      for (int i = 0; i < features; i++)
+      {
+        X_batch[i, j] = X[i, dataIndex];
+      }
+    }
+
+    return (X_batch, Y_batch);
+  }
+
+  private (int[] indices, float[,] X_shuffled, int[] Y_shuffled) ShuffleData(float[,] X, int[] Y)
+  {
+    int m = Y.Length;
+    int features = X.GetLength(0);
+
+    // Create index array and shuffle it
+    int[] indices = new int[m];
+    for (int i = 0; i < m; i++)
+      indices[i] = i;
+
+    // Fisher-Yates shuffle
+    var rand = new Random();
+    for (int i = m - 1; i > 0; i--)
+    {
+      int j = rand.Next(i + 1);
+      (indices[i], indices[j]) = (indices[j], indices[i]);
+    }
+
+    // Create shuffled datasets
+    float[,] X_shuffled = new float[features, m];
+    int[] Y_shuffled = new int[m];
+
+    for (int newIdx = 0; newIdx < m; newIdx++)
+    {
+      int oldIdx = indices[newIdx];
+      Y_shuffled[newIdx] = Y[oldIdx];
+
+      for (int f = 0; f < features; f++)
+      {
+        X_shuffled[f, newIdx] = X[f, oldIdx];
+      }
+    }
+
+    return (indices, X_shuffled, Y_shuffled);
+  }
+
+  public float CalculateLoss(float[,] predictions, int[] Y)
+  {
+    int numClasses = predictions.GetLength(0);
+    int m = Y.Length;
+    float loss = 0f;
+
+    // Cross-entropy loss
+    for (int j = 0; j < m; j++)
+    {
+      int trueClass = Y[j];
+      float predictedProb = predictions[trueClass, j];
+
+      // Add small epsilon to avoid log(0)
+      loss += -MathF.Log(predictedProb + 1e-8f);
+    }
+
+    return loss / m;
+  }
+
+  // Overload for one-hot encoded labels
+  public float CalculateLoss(float[,] predictions, float[,] Y_onehot)
+  {
+    int m = predictions.GetLength(1);
+    float loss = 0f;
+
+    for (int j = 0; j < m; j++)
+    {
+      for (int i = 0; i < predictions.GetLength(0); i++)
+      {
+        if (Y_onehot[i, j] > 0.5f) // If this is the true class
+        {
+          float predictedProb = predictions[i, j];
+          loss += -MathF.Log(predictedProb + 1e-8f);
+          break; // Only one true class per sample
+        }
+      }
+    }
+
+    return loss / m;
   }
 }

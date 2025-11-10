@@ -8,9 +8,9 @@ using neuronka.dataLoading;
 
 class Program
 {
-    private static int _batchSize = 60000;
-    private static int _iterations = 250;
-    private static float _alpha = 0.075f;
+    private static int _batchSize = 64;
+    private static int _iterations = 50;
+    private static float _alpha = 0.001f;
 
     static void Main()
     {
@@ -26,28 +26,21 @@ class Program
         loaderTimer.Stop();
         Console.WriteLine($"Data loaded in {loaderTimer.ElapsedMilliseconds} ms");
 
-        // CREATE SMALLER BATCH
+        // TRAIN ON FULL DATA WITH MINI-BATCHES (no upfront copying)
         int batchSize = _batchSize;
-        float[,] X_batch = new float[trainImages.GetLength(0), batchSize];
-        int[] Y_batch = new int[batchSize];
-        for (int j = 0; j < batchSize; j++)
-        {
-            for (int i = 0; i < trainImages.GetLength(0); i++)
-                X_batch[i, j] = trainImages[i, j];
-            Y_batch[j] = trainLabels[j];
-        }
-        Console.WriteLine($"X_Batch size: {X_batch.GetLength(0)}x{X_batch.GetLength(1)}");
-        Console.WriteLine($"Y_Batch size: {Y_batch.GetLength(0)}");
+        Console.WriteLine($"Batch size: {batchSize}, Training set: {trainImages.GetLength(1)} samples");
 
         // CREATE NETWORK
         var rand = new Random(42);
         var network = new NeuralNetwork("cross_entropy");
-        network.AddLayer(new Layer(rand, "hidden1", 784, 30, "relu"));
-        network.AddLayer(new Layer(rand, "output", 30, 10, "softmax"));
+        network.AddLayer(new Layer(rand, "hidden1", 784, 256, "relu"));
+        network.AddLayer(new Layer(rand, "output", 256, 128, "relu"));
+        network.AddLayer(new Layer(rand, "output", 128, 64, "relu"));
+        network.AddLayer(new Layer(rand, "output", 64, 10, "softmax"));
 
         // TRAIN MODEL
         var trainingTimer = Stopwatch.StartNew();
-        network.Train(X_batch, Y_batch, _alpha, _iterations, batchSize);
+        network.Train(trainImages, trainLabels, _alpha, _iterations, batchSize);
         trainingTimer.Stop();
         Console.WriteLine($"Training completed in {trainingTimer.ElapsedMilliseconds} ms");
 

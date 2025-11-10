@@ -7,15 +7,26 @@ public class Layer
   public int OutputSize { get; }
   public string Activation { get; }
 
-  public float[,] Weights { get; set; }
-  public float[,] Biases { get; set; }
+  public float[,] Weights { get; set; } = default!;
+  public float[,] Biases { get; set; } = default!;
 
   // Cache for backpropagation
-  public float[,] Z { get; set; }
-  public float[,] A { get; set; }
-  public float[,] Input { get; set; }
+  public float[,] Z { get; set; } = default!;
+  public float[,] A { get; set; } = default!;
+  public float[,] Input { get; set; } = default!;
 
-  public Layer(Random rand, string name, int inputSize, int outputSize, string activation = "relu")
+  public Layer(string name, int inputSize, int outputSize, string activation = "relu")
+  {
+    Name = name;
+    InputSize = inputSize;
+    OutputSize = outputSize;
+    Activation = activation;
+
+    InitializeParameters(new System.Random());
+  }
+
+  // Overload to accept shared RNG (for reproducible, diverse init)
+  public Layer(System.Random rand, string name, int inputSize, int outputSize, string activation = "relu")
   {
     Name = name;
     InputSize = inputSize;
@@ -25,7 +36,7 @@ public class Layer
     InitializeParameters(rand);
   }
 
-  private void InitializeParameters(Random rand)
+  private void InitializeParameters(System.Random rand)
   {
     Weights = new float[OutputSize, InputSize];
     Biases = new float[OutputSize, 1];
@@ -33,8 +44,8 @@ public class Layer
     // He initialization for ReLU, Xavier for tanh/sigmoid
     float scale = Activation switch
     {
-      "relu" => (float)Math.Sqrt(2.0 / InputSize),
-      "tanh" or "sigmoid" => (float)Math.Sqrt(1.0 / InputSize),
+      "relu" => (float)System.Math.Sqrt(2.0 / InputSize),
+      "tanh" or "sigmoid" => (float)System.Math.Sqrt(1.0 / InputSize),
       _ => 0.01f
     };
 
@@ -57,13 +68,13 @@ public class Layer
       "tanh" => ActivationFunctions.Tanh(Z),
       "softmax" => ActivationFunctions.Softmax(Z),
       "linear" => Z,
-      _ => throw new ArgumentException($"Unknown activation function: {Activation}")
+      _ => throw new System.ArgumentException($"Unknown activation function: {Activation}")
     };
 
     return A;
   }
 
-  public (float[,] dW, float[,] db) Backward(float[,] dA, float[,] prevActivation, int batchSize)
+  public (float[,] dW, float[,] db, float[,] dA_prev) Backward(float[,] dA, float[,] prevActivation, int batchSize)
   {
     float[,] dZ;
 
@@ -79,7 +90,8 @@ public class Layer
         "relu" => ActivationFunctions.ReLU_Deriv(Z),
         "sigmoid" => ActivationFunctions.Sigmoid_Deriv(Z),
         "tanh" => ActivationFunctions.Tanh_Deriv(Z),
-        _ => throw new ArgumentException($"Unknown activation function: {Activation}")
+        "linear" => CreateOnesMatrix(Z.GetLength(0), Z.GetLength(1)),
+        _ => throw new System.ArgumentException($"Unknown activation function: {Activation}")
       };
 
       dZ = MatrixUtils.Multiply(dA, activationDeriv);
@@ -87,34 +99,10 @@ public class Layer
 
     float[,] dW = MatrixUtils.Scale(MatrixUtils.Dot(dZ, MatrixUtils.Transpose(prevActivation)), 1f / batchSize);
     float[,] db = MatrixUtils.Scale(MatrixUtils.SumColumns(dZ), 1f / batchSize);
+    // gradient wrt previous layer activation: W^T @ dZ (before updating parameters)
+    float[,] dA_prev = MatrixUtils.Dot(MatrixUtils.Transpose(Weights), dZ);
 
-    return (dW, db);
-  }
-
-  public float[,] CalculateGradient(float[,] dA, float[,] currentWeights)
-  {
-    float[,] dZ;
-
-    if (Activation == "softmax")
-    {
-      dZ = dA;
-    }
-    else
-    {
-      float[,] activationDeriv = Activation switch
-      {
-        "relu" => ActivationFunctions.ReLU_Deriv(Z),
-        "sigmoid" => ActivationFunctions.Sigmoid_Deriv(Z),
-        "tanh" => ActivationFunctions.Tanh_Deriv(Z),
-        "linear" => CreateOnesMatrix(Z.GetLength(0), Z.GetLength(1)),
-        _ => throw new ArgumentException($"Unknown activation function: {Activation}")
-      };
-
-      dZ = MatrixUtils.Multiply(dA, activationDeriv);
-    }
-
-    // CORRECTED: Propagate gradient backward using current layer's weights
-    return MatrixUtils.Dot(MatrixUtils.Transpose(currentWeights), dZ);
+    return (dW, db, dA_prev);
   }
 
   public void UpdateParameters(float[,] dW, float[,] db, float learningRate)
@@ -131,5 +119,4 @@ public class Layer
         ones[i, j] = 1f;
     return ones;
   }
-
 }
