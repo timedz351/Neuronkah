@@ -133,3 +133,7 @@ $RECYCLE.BIN/
 
 _NCrunch*
 *.csv
+*.dll
+*.pdb
+*.ddl
+.cache

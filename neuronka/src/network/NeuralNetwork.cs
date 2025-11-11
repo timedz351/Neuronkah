@@ -56,17 +56,26 @@ public class NeuralNetwork
     }
   }
 
-  public void Train(float[,] X, int[] Y, float learningRate, int iterations, int batchSize = 64)
+  public void Train(float[,] X, int[] Y, float learningRate, float decayRate, int stepSize, int iterations, int batchSize = 64,
+                  LearningRateScheduler.ScheduleType scheduleType = LearningRateScheduler.ScheduleType.Constant)
   {
     var epochTimer = Stopwatch.StartNew();
-    var epochDelta = 0L;
+    // Track time between logs to compute per-epoch average accurately, even at iter=0
+    long lastLogMs = 0L;
+    int lastLogIter = -1;
+    const int logEvery = 10;
     int m = Y.Length;
 
-    // Calculate number of batches per epoch
+    // Initialize learning rate scheduler
+    var scheduler = new LearningRateScheduler(scheduleType, learningRate, decayRate: 0.85f, stepSize: 5);
+
     int batchesPerEpoch = (int)Math.Ceiling((double)m / batchSize);
 
     for (int iter = 0; iter < iterations; iter++)
     {
+      // Get current learning rate from scheduler
+      float currentLearningRate = scheduler.GetLearningRate();
+
       // Shuffle data at the start of each epoch
       var (_, X_shuffled, Y_shuffled) = ShuffleData(X, Y);
       float epochLoss = 0f;
@@ -81,30 +90,40 @@ public class NeuralNetwork
         // Forward pass
         float[,] output = Forward(X_batch);
 
-        // Calculate batch loss (for monitoring)
+        // Calculate batch loss
         float batchLoss = CalculateLoss(output, Y_batch);
         epochLoss += batchLoss;
         batchCount++;
 
-        // Backward pass
-        Backward(X_batch, Y_batch, learningRate, currentBatchSize);
+        // Backward pass with current learning rate
+        Backward(X_batch, Y_batch, currentLearningRate, currentBatchSize);
       }
 
-      // Calculate average loss for the epoch
       epochLoss /= batchCount;
 
-      // Logging every 10 epochs
-      if (iter % 10 == 0)
+      // Logging every 'logEvery' epochs
+      if (iter % logEvery == 0)
       {
         float[,] output = Forward(X);
         int[] predictions = GetPredictions(output);
         float acc = GetAccuracy(predictions, Y);
-        var estTime = (epochTimer.ElapsedMilliseconds - epochDelta) / 1000f * ((iterations - iter) / 10f) / 60f;
-        var mins = float.Floor(estTime);
-        var secs = (estTime - mins) * 60f;
-        epochDelta = epochTimer.ElapsedMilliseconds;
+        // Compute ETA based on average epoch time since last log.
+        long nowMs = epochTimer.ElapsedMilliseconds;
+        int epochsSinceLastLog = iter - lastLogIter; // at iter=0 => 1
+        long segmentMs = nowMs - lastLogMs;
+        double avgEpochMs = epochsSinceLastLog > 0 ? (double)segmentMs / epochsSinceLastLog : 0.0;
+        int remainingEpochs = Math.Max(0, iterations - (iter + 1));
+        double etaSeconds = (avgEpochMs * remainingEpochs) / 1000.0;
+        var etaSpan = TimeSpan.FromSeconds(etaSeconds);
+        int mins = (int)etaSpan.TotalMinutes;
+        int secs = etaSpan.Seconds;
+        // Update log anchors
+        lastLogMs = nowMs;
+        lastLogIter = iter;
 
+        // Include current learning rate in logging
         Console.WriteLine($"Epoch {iter}, Loss: {epochLoss:F4}, Accuracy: {acc:P2}, " +
+                        $"LR: {currentLearningRate:E3}, " +
                         $"Time {epochTimer.ElapsedMilliseconds / 1000}s, " +
                         $"ETA: {mins}m {secs:0}s");
       }

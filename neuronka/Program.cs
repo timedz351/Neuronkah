@@ -8,9 +8,11 @@ using neuronka.dataLoading;
 
 class Program
 {
-    private static int _batchSize = 16;
-    private static int _iterations = 85;
-    private static float _alpha = 0.001f;
+    private static int _batchSize = 256;
+    private static int _iterations = 30;
+    private static float _alpha = 0.05f;
+    private static float _decayRate = 0.65f;
+    private static int _stepSize = 5;
 
     static void Main()
     {
@@ -31,16 +33,19 @@ class Program
         Console.WriteLine($"Batch size: {batchSize}, Training set: {trainImages.GetLength(1)} samples");
 
         // CREATE NETWORK
-        var rand = new Random(42);
+        var rand = new Random();
         var network = new NeuralNetwork("cross_entropy");
         network.AddLayer(new Layer(rand, "hidden1", 784, 128, "relu"));
-        // network.AddLayer(new Layer(rand, "output", 256, 128, "relu"));
-        network.AddLayer(new Layer(rand, "hidden2", 128, 64, "relu"));
-        network.AddLayer(new Layer(rand, "output", 64, 10, "softmax"));
+        // network.AddLayer(new Layer(rand, "hidden2", 256, 128, "relu"));
+        // network.AddLayer(new Layer(rand, "hidden3", 128, 64, "relu"));
+        network.AddLayer(new Layer(rand, "output", 128, 10, "softmax"));
 
-        // TRAIN MODEL
+        // Choose a scheduling strategy:
+        var scheduleType = LearningRateScheduler.ScheduleType.Constant;
+
+        // TRAIN MODEL with learning rate scheduling
         var trainingTimer = Stopwatch.StartNew();
-        network.Train(trainImages, trainLabels, _alpha, _iterations, batchSize);
+        network.Train(trainImages, trainLabels, _alpha, _decayRate, _stepSize, _iterations, _batchSize, scheduleType);
         trainingTimer.Stop();
         Console.WriteLine($"Training completed in {trainingTimer.ElapsedMilliseconds} ms");
 
