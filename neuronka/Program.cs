@@ -12,7 +12,7 @@ class Program
     private static int _iterations = 30;
     private static float _alpha = 0.2f;
     private static float _decayRate = 0.85f;
-    private static int _stepSize = 5;
+    private static int _stepSize = 2;
     private static float _momentumBeta = 0.95f;
     private static LearningRateScheduler.ScheduleType _scheduleType = LearningRateScheduler.ScheduleType.StepDecay;
 
