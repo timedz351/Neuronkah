@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="87f500b9-3e35-4d19-bed4-aab376da8135" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Neuronkah/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Neuronkah/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/Program.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/neuronka.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/neuronka.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/neuronka/obj/Debug/net9.0/neuronka.AssemblyInfoInputs.cache" afterDir="false" />
-    </list>
+    <list default="true" id="76e94a58-5279-4543-a03f-a3352de97e65" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -16,13 +10,11 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/neuronka/Program.cs" root0="FORCE_HIGHLIGHTING" />
-  </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 0
-}</component>
-  <component name="ProjectId" id="33LRxSmycb22rBaoGgOLZOVbcS2" />
+  <component name="ProjectColorInfo"><![CDATA[{
+  "customColor": "",
+  "associatedIndex": 0
+}]]></component>
+  <component name="ProjectId" id="35IDmGdyxZInCZeYt4RaWZwygdi" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -31,22 +23,18 @@
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/timedz351/RiderProjects/Neuronkah",
-    "nodejs_package_manager_path": "npm",
+    "git-widget-placeholder": "timedz",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="87f500b9-3e35-4d19-bed4-aab376da8135" name="Changes" comment="" />
-      <created>1759094611497</created>
+      <changelist id="76e94a58-5279-4543-a03f-a3352de97e65" name="Changes" comment="" />
+      <created>1762788850594</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1759094611497</updated>
-      <workItem from="1759094612544" duration="191000" />
-      <workItem from="1759094852004" duration="163000" />
+      <updated>1762788850594</updated>
+      <workItem from="1762788851903" duration="4000" />
     </task>
     <servers />
   </component>

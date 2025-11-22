@@ -131,6 +131,8 @@ $RECYCLE.BIN/
 .DS_Store
 
 _NCrunch*
-
-# Custom
 *.csv
+*.dll
+*.pdb
+*.ddl
+.cache

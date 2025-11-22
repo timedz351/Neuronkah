@@ -1,25 +1,15 @@
-namespace neuronka
+namespace neuronka;
+
+public class ModelTester
 {
-    public static class ModelTester
+    public static float TestModel(NeuralNetwork network, float[,] X, int[] Y)
     {
-        /// <summary>
-        /// Tests the neural network on a dataset and returns accuracy.
-        /// </summary>
-        public static float TestModel(
-            float[,] W1, float[,] b1, float[,] W2, float[,] b2,
-            float[,] X, int[] Y)
-        {
-            // Forward pass
-            var (_, _, _, A2) = Program.ForwardProp(W1, b1, W2, b2, X);
-
-            // Get predictions
-            int[] predictions = Program.GetPredictions(A2);
-
-            // Compute accuracy
-            float accuracy = Program.GetAccuracy(predictions, Y);
-
-            return accuracy;
-        }
-
+        float[,] output = network.Forward(X);
+        int[] predictions = network.GetPredictions(output);
+        float accuracy = network.GetAccuracy(predictions, Y);
+        return accuracy;
     }
 }
+
+
+
