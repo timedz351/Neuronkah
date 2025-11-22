@@ -9,10 +9,11 @@ using neuronka.dataLoading;
 class Program
 {
     private static int _batchSize = 256;
-    private static int _iterations = 50;
-    private static float _alpha = 0.1f;
+    private static int _iterations = 30;
+    private static float _alpha = 0.2f;
     private static float _decayRate = 0.85f;
     private static int _stepSize = 5;
+    private static float _momentumBeta = 0.95f;
     private static LearningRateScheduler.ScheduleType _scheduleType = LearningRateScheduler.ScheduleType.StepDecay;
 
     static void Main()
@@ -44,7 +45,7 @@ class Program
 
         // TRAIN MODEL with learning rate scheduling
         var trainingTimer = Stopwatch.StartNew();
-        network.Train(trainImages, trainLabels, _alpha, _decayRate, _stepSize, _iterations, _batchSize, _scheduleType);
+        network.Train(trainImages, trainLabels, _alpha, _decayRate, _stepSize, _iterations, _batchSize, _scheduleType, _momentumBeta);
         trainingTimer.Stop();
         Console.WriteLine($"Training completed in {trainingTimer.ElapsedMilliseconds} ms");
 

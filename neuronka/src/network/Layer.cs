@@ -9,6 +9,9 @@ public class Layer
 
   public float[,] Weights { get; set; } = default!;
   public float[,] Biases { get; set; } = default!;
+  // Momentum velocities (optional)
+  public float[,] Vw { get; set; } = default!;
+  public float[,] Vb { get; set; } = default!;
 
   // Cache for backpropagation
   public float[,] Z { get; set; } = default!;
@@ -40,6 +43,9 @@ public class Layer
   {
     Weights = new float[OutputSize, InputSize];
     Biases = new float[OutputSize, 1];
+    // Initialize velocities to zero (lazy allocate on first momentum update if desired)
+    Vw = new float[OutputSize, InputSize];
+    Vb = new float[OutputSize, 1];
 
     // He initialization for ReLU, Xavier for tanh/sigmoid
     float scale = Activation switch
@@ -59,6 +65,7 @@ public class Layer
   public float[,] Forward(float[,] input)
   {
     Input = input;
+    // Z = W * input + b
     Z = MatrixUtils.Add(MatrixUtils.Dot(Weights, input), Biases);
 
     A = Activation switch
@@ -99,7 +106,7 @@ public class Layer
 
     float[,] dW = MatrixUtils.Scale(MatrixUtils.Dot(dZ, MatrixUtils.Transpose(prevActivation)), 1f / batchSize);
     float[,] db = MatrixUtils.Scale(MatrixUtils.SumColumns(dZ), 1f / batchSize);
-    // gradient wrt previous layer activation: W^T @ dZ (before updating parameters)
+    // gradient wrt previous layer activation: W^T * dZ (before updating parameters)
     float[,] dA_prev = MatrixUtils.Dot(MatrixUtils.Transpose(Weights), dZ);
 
     return (dW, db, dA_prev);
@@ -109,6 +116,42 @@ public class Layer
   {
     Weights = MatrixUtils.Subtract(Weights, MatrixUtils.Scale(dW, learningRate));
     Biases = MatrixUtils.Subtract(Biases, MatrixUtils.Scale(db, learningRate));
+  }
+
+  // Overload with momentum (classical momentum: v = beta*v + dW; W -= lr * v)
+  public void UpdateParameters(float[,] dW, float[,] db, float learningRate, float momentumBeta)
+  {
+    if (momentumBeta <= 0f)
+    {
+      UpdateParameters(dW, db, learningRate);
+      return;
+    }
+
+    // Ensure velocity matrices match dimensions
+    if (Vw == null || Vw.GetLength(0) != Weights.GetLength(0) || Vw.GetLength(1) != Weights.GetLength(1))
+      Vw = new float[Weights.GetLength(0), Weights.GetLength(1)];
+    if (Vb == null || Vb.GetLength(0) != Biases.GetLength(0) || Vb.GetLength(1) != Biases.GetLength(1))
+      Vb = new float[Biases.GetLength(0), Biases.GetLength(1)];
+
+    // v = beta * v + (1 - beta) * grad   (This variant smooths; classical is beta*v + grad)
+    // You can switch to classical by removing (1 - momentumBeta) scaling below.
+    float blend = 1f - momentumBeta;
+    for (int i = 0; i < Vw.GetLength(0); i++)
+    {
+      for (int j = 0; j < Vw.GetLength(1); j++)
+      {
+        Vw[i, j] = momentumBeta * Vw[i, j] + blend * dW[i, j];
+        Weights[i, j] -= learningRate * Vw[i, j];
+      }
+    }
+    for (int i = 0; i < Vb.GetLength(0); i++)
+    {
+      for (int j = 0; j < Vb.GetLength(1); j++)
+      {
+        Vb[i, j] = momentumBeta * Vb[i, j] + blend * db[i, j];
+        Biases[i, j] -= learningRate * Vb[i, j];
+      }
+    }
   }
 
   private float[,] CreateOnesMatrix(int rows, int cols)

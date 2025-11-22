@@ -33,7 +33,7 @@ public class NeuralNetwork
     return activation;
   }
 
-  public void Backward(float[,] X, int[] Y, float learningRate, int batchSize)
+  public void Backward(float[,] X, int[] Y, float learningRate, int batchSize, float momentumBeta)
   {
     // Convert labels to one-hot encoding for the output layer
     float[,] Y_onehot = OneHot(Y, Layers[^1].OutputSize);
@@ -49,15 +49,15 @@ public class NeuralNetwork
 
       // Backward for this layer: returns gradients and dA for previous layer
       var (dW, db, dA_prev) = layer.Backward(dA, prevActivation, batchSize);
-      // Update after computing dA_prev
-      layer.UpdateParameters(dW, db, learningRate);
+      layer.UpdateParameters(dW, db, learningRate, momentumBeta);
       if (i > 0)
         dA = dA_prev;
     }
   }
 
   public void Train(float[,] X, int[] Y, float learningRate, float decayRate, int stepSize, int iterations, int batchSize = 64,
-                  LearningRateScheduler.ScheduleType scheduleType = LearningRateScheduler.ScheduleType.Constant)
+                  LearningRateScheduler.ScheduleType scheduleType = LearningRateScheduler.ScheduleType.Constant,
+                  float momentumBeta = 0f)
   {
     var epochTimer = Stopwatch.StartNew();
     // Track time between logs to compute per-epoch average accurately, even at iter=0
@@ -66,8 +66,8 @@ public class NeuralNetwork
     const int logEvery = 10;
     int m = Y.Length;
 
-    // Initialize learning rate scheduler
-    var scheduler = new LearningRateScheduler(scheduleType, learningRate, decayRate: 0.85f, stepSize: 5);
+    // Initialize learning rate scheduler with provided decayRate & stepSize
+    var scheduler = new LearningRateScheduler(scheduleType, learningRate, decayRate: decayRate, stepSize: stepSize);
 
     int batchesPerEpoch = (int)Math.Ceiling((double)m / batchSize);
 
@@ -96,7 +96,7 @@ public class NeuralNetwork
         batchCount++;
 
         // Backward pass with current learning rate
-        Backward(X_batch, Y_batch, currentLearningRate, currentBatchSize);
+        Backward(X_batch, Y_batch, currentLearningRate, currentBatchSize, momentumBeta);
       }
 
       epochLoss /= batchCount;
