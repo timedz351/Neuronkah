@@ -77,14 +77,14 @@ public class NeuralNetwork
       float currentLearningRate = scheduler.GetLearningRate();
 
       // Shuffle data at the start of each epoch
-      var (_, X_shuffled, Y_shuffled) = ShuffleData(X, Y);
+      int[] shuffledIndices = ShuffleIndices(m, iter);      
       float epochLoss = 0f;
       int batchCount = 0;
 
       // Process each batch in the epoch
       for (int batchIndex = 0; batchIndex < batchesPerEpoch; batchIndex++)
       {
-        var (X_batch, Y_batch) = GetBatch(X_shuffled, Y_shuffled, batchSize, batchIndex, iter);
+        var (X_batch, Y_batch) =GetBatch(X, Y, shuffledIndices,batchSize, batchIndex);
         int currentBatchSize = Y_batch.Length;
 
         // Forward pass
@@ -187,7 +187,7 @@ public class NeuralNetwork
 
     return batch;
   }
-  private (float[,] X_batch, int[] Y_batch) GetBatch(float[,] X, int[] Y, int batchSize, int batchIndex, int epoch)
+  private (float[,] X_batch, int[] Y_batch) GetBatch(float[,] X, int[] Y,int[] shuffledIndices, int batchSize, int batchIndex)
   {
     int m = Y.Length;
     int features = X.GetLength(0);
@@ -202,52 +202,34 @@ public class NeuralNetwork
     // Copy batch data
     for (int j = 0; j < currentBatchSize; j++)
     {
-      int dataIndex = start + j;
+      int dataIndex = shuffledIndices[start + j];
       Y_batch[j] = Y[dataIndex];
-
-      for (int i = 0; i < features; i++)
+      for (int f = 0; f < features; f++)
       {
-        X_batch[i, j] = X[i, dataIndex];
+        X_batch[f, j] = X[f, dataIndex];
       }
     }
 
     return (X_batch, Y_batch);
   }
 
-  private (int[] indices, float[,] X_shuffled, int[] Y_shuffled) ShuffleData(float[,] X, int[] Y)
+/*
+ * You have 60,000 training examples. You want to randomize their order each epoch. Instead of moving all the data,
+ * you just shuffle numbers on a sticky note that say which example to use next.
+ * The function creates a list [0, 1, 2, ..., 59999] and scrambles it to something
+ * like [342, 5, 18000, ...]. When making a batch, you look at this list and say "okay, first use example #342, then #5,
+ * then #18000..."
+ */
+  private int[] ShuffleIndices(int m, int epoch)
   {
-    int m = Y.Length;
-    int features = X.GetLength(0);
-
-    // Create index array and shuffle it
-    int[] indices = new int[m];
-    for (int i = 0; i < m; i++)
-      indices[i] = i;
-
-    // Fisher-Yates shuffle
-    var rand = new Random();
+    int[] indices = Enumerable.Range(0, m).ToArray();
+    var rand = new Random(42 + epoch); // Fixed seed + epoch for reproducibility
     for (int i = m - 1; i > 0; i--)
     {
       int j = rand.Next(i + 1);
       (indices[i], indices[j]) = (indices[j], indices[i]);
     }
-
-    // Create shuffled datasets
-    float[,] X_shuffled = new float[features, m];
-    int[] Y_shuffled = new int[m];
-
-    for (int newIdx = 0; newIdx < m; newIdx++)
-    {
-      int oldIdx = indices[newIdx];
-      Y_shuffled[newIdx] = Y[oldIdx];
-
-      for (int f = 0; f < features; f++)
-      {
-        X_shuffled[f, newIdx] = X[f, oldIdx];
-      }
-    }
-
-    return (indices, X_shuffled, Y_shuffled);
+    return indices;
   }
 
   public float CalculateLoss(float[,] predictions, int[] Y)
