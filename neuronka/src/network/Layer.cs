@@ -1,5 +1,12 @@
 namespace neuronka;
 
+public enum MomentumType
+{
+  None,
+  Smoothed,   // v = beta*v + (1-beta)*grad; W -= lr * v
+  Classical   // v = beta*v + grad;          W -= lr * v
+}
+
 public class Layer
 {
   public string Name { get; }
@@ -18,17 +25,6 @@ public class Layer
   public float[,] A { get; set; } = default!;
   public float[,] Input { get; set; } = default!;
 
-  public Layer(string name, int inputSize, int outputSize, string activation = "relu")
-  {
-    Name = name;
-    InputSize = inputSize;
-    OutputSize = outputSize;
-    Activation = activation;
-
-    InitializeParameters(new System.Random());
-  }
-
-  // Overload to accept shared RNG (for reproducible, diverse init)
   public Layer(System.Random rand, string name, int inputSize, int outputSize, string activation = "relu")
   {
     Name = name;
@@ -43,7 +39,7 @@ public class Layer
   {
     Weights = new float[OutputSize, InputSize];
     Biases = new float[OutputSize, 1];
-    // Initialize velocities to zero (lazy allocate on first momentum update if desired)
+    // Initialize velocities to zero
     Vw = new float[OutputSize, InputSize];
     Vb = new float[OutputSize, 1];
 
@@ -105,6 +101,17 @@ public class Layer
     }
 
     float[,] dW = MatrixUtils.Scale(MatrixUtils.Dot(dZ, MatrixUtils.Transpose(prevActivation)), 1f / batchSize);
+    // L2 regularization: add lambda * W to gradient if enabled
+    if (TrainingSettings.WeightDecay > 0f)
+    {
+      for (int i = 0; i < dW.GetLength(0); i++)
+      {
+        for (int j = 0; j < dW.GetLength(1); j++)
+        {
+          dW[i, j] += TrainingSettings.WeightDecay * Weights[i, j];
+        }
+      }
+    }
     float[,] db = MatrixUtils.Scale(MatrixUtils.SumColumns(dZ), 1f / batchSize);
     // gradient wrt previous layer activation: W^T * dZ (before updating parameters)
     float[,] dA_prev = MatrixUtils.Dot(MatrixUtils.Transpose(Weights), dZ);
@@ -118,7 +125,7 @@ public class Layer
     Biases = MatrixUtils.Subtract(Biases, MatrixUtils.Scale(db, learningRate));
   }
 
-  // Overload with momentum (classical momentum: v = beta*v + dW; W -= lr * v)
+  // Overload with momentum
   public void UpdateParameters(float[,] dW, float[,] db, float learningRate, float momentumBeta)
   {
     if (momentumBeta <= 0f)
@@ -133,14 +140,12 @@ public class Layer
     if (Vb == null || Vb.GetLength(0) != Biases.GetLength(0) || Vb.GetLength(1) != Biases.GetLength(1))
       Vb = new float[Biases.GetLength(0), Biases.GetLength(1)];
 
-    // v = beta * v + (1 - beta) * grad   (This variant smooths; classical is beta*v + grad)
-    // You can switch to classical by removing (1 - momentumBeta) scaling below.
-    float blend = 1f - momentumBeta;
+    // Default to classical momentum for backward compatibility
     for (int i = 0; i < Vw.GetLength(0); i++)
     {
       for (int j = 0; j < Vw.GetLength(1); j++)
       {
-        Vw[i, j] = momentumBeta * Vw[i, j] + blend * dW[i, j];
+        Vw[i, j] = momentumBeta * Vw[i, j] + dW[i, j];
         Weights[i, j] -= learningRate * Vw[i, j];
       }
     }
@@ -148,8 +153,60 @@ public class Layer
     {
       for (int j = 0; j < Vb.GetLength(1); j++)
       {
-        Vb[i, j] = momentumBeta * Vb[i, j] + blend * db[i, j];
+        Vb[i, j] = momentumBeta * Vb[i, j] + db[i, j];
         Biases[i, j] -= learningRate * Vb[i, j];
+      }
+    }
+  }
+
+  // Overload with explicit momentum type
+  public void UpdateParameters(float[,] dW, float[,] db, float learningRate, float momentumBeta, MomentumType momentumType)
+  {
+    if (momentumBeta <= 0f || momentumType == MomentumType.None)
+    {
+      UpdateParameters(dW, db, learningRate);
+      return;
+    }
+
+    if (momentumType == MomentumType.Smoothed)
+    {
+      // v = beta*v + (1-beta)*grad; W -= lr * v
+      float blend = 1f - momentumBeta;
+      for (int i = 0; i < Vw.GetLength(0); i++)
+      {
+        for (int j = 0; j < Vw.GetLength(1); j++)
+        {
+          Vw[i, j] = momentumBeta * Vw[i, j] + blend * dW[i, j];
+          Weights[i, j] -= learningRate * Vw[i, j];
+        }
+      }
+      for (int i = 0; i < Vb.GetLength(0); i++)
+      {
+        for (int j = 0; j < Vb.GetLength(1); j++)
+        {
+          Vb[i, j] = momentumBeta * Vb[i, j] + blend * db[i, j];
+          Biases[i, j] -= learningRate * Vb[i, j];
+        }
+      }
+    }
+    else // MomentumType.Classical
+    {
+      // v = beta*v + grad; W -= lr * v
+      for (int i = 0; i < Vw.GetLength(0); i++)
+      {
+        for (int j = 0; j < Vw.GetLength(1); j++)
+        {
+          Vw[i, j] = momentumBeta * Vw[i, j] + dW[i, j];
+          Weights[i, j] -= learningRate * Vw[i, j];
+        }
+      }
+      for (int i = 0; i < Vb.GetLength(0); i++)
+      {
+        for (int j = 0; j < Vb.GetLength(1); j++)
+        {
+          Vb[i, j] = momentumBeta * Vb[i, j] + db[i, j];
+          Biases[i, j] -= learningRate * Vb[i, j];
+        }
       }
     }
   }

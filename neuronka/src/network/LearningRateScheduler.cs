@@ -26,34 +26,30 @@ public class LearningRateScheduler
     _currentEpoch = 0;
   }
 
+  // Returns LR for the CURRENT epoch (starting at 0), then advances internal epoch counter.
   public float GetLearningRate()
   {
-    _currentEpoch++;
-    return _type switch
+    float lr = _type switch
     {
       ScheduleType.Constant => _initialRate,
       ScheduleType.StepDecay => StepDecay(),
       ScheduleType.Exponential => ExponentialDecay(),
-      ScheduleType.Cosine => CosineDecay(),
       _ => _initialRate
     };
+    _currentEpoch++; // advance AFTER computing lr so first call corresponds to epoch 0
+    return lr;
   }
 
   private float StepDecay()
   {
+    // Epoch 0: floor(0/stepSize)=0 -> initialRate
     return _initialRate * MathF.Pow(_decayRate, MathF.Floor((float)_currentEpoch / _stepSize));
   }
 
   private float ExponentialDecay()
   {
+    // Standard exponential decay: lr = lr0 * exp(-decayRate * epoch)
     return _initialRate * MathF.Exp(-_decayRate * _currentEpoch);
-  }
-
-  private float CosineDecay()
-  {
-    // Simple cosine decay over total epochs (assuming 1000 total for calculation)
-    float totalEpochs = 1000;
-    return _initialRate * 0.5f * (1 + MathF.Cos(MathF.PI * _currentEpoch / totalEpochs));
   }
 
   public void Reset()
