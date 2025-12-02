@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using neuronka.dataLoading;
+using neuronka.exporter;
 
 namespace neuronka;
 
@@ -56,10 +57,12 @@ internal class Program
         Console.WriteLine($"Training completed in {trainingTimer.ElapsedMilliseconds} ms");
 
         // TEST MODEL
-        float valAcc = ModelTester.TestModel(network, valImages, valLabels);
+        var (valAcc, valPred) = ModelTester.TestModel(network, valImages, valLabels);
+        Exporter.ExportTrain(projectRoot, valPred);
         Console.WriteLine($"Validation accuracy: {valAcc:P2}");
 
-        float testAcc = ModelTester.TestModel(network, testData.Images, testData.Labels);
+        var (testAcc, testPred) = ModelTester.TestModel(network, testData.Images, testData.Labels);
+        Exporter.ExportTest(projectRoot, testPred);
         Console.WriteLine($"Final test accuracy: {testAcc:P2}");
 
         var elapsed = fullTimer.Elapsed;
