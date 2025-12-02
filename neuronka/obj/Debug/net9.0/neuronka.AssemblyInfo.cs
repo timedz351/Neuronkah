@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("neuronka")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c73fde2db9048ccb72a7804a024ae2bfab9b459e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ef02877ac762d85e8670fa8730a8f82541f7cee9")]
 [assembly: System.Reflection.AssemblyProductAttribute("neuronka")]
 [assembly: System.Reflection.AssemblyTitleAttribute("neuronka")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

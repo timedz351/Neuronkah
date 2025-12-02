@@ -21,6 +21,24 @@ public class NeuralNetwork
     Layers.Add(layer);
   }
 
+  public void Train(float[,] X_train, int[] Y_train, float[,] X_val, int[] Y_val)
+  {
+    Train(
+      X_train,
+      Y_train,
+      X_val,
+      Y_val,
+      TrainingSettings.LearningRate,
+      TrainingSettings.DecayRate,
+      TrainingSettings.StepSize,
+      TrainingSettings.Epochs,
+      TrainingSettings.BatchSize,
+      TrainingSettings.ScheduleType,
+      TrainingSettings.MomentumBeta,
+      TrainingSettings.MomentumType
+    );
+  }
+
   public float[,] Forward(float[,] X)
   {
     float[,] activation = X;
@@ -33,7 +51,7 @@ public class NeuralNetwork
     return activation;
   }
 
-  public void Backward(float[,] X, int[] Y, float learningRate, int batchSize, float momentumBeta)
+  public void Backward(float[,] X, int[] Y, float learningRate, int batchSize, float momentumBeta, MomentumType momentumType)
   {
     // Convert labels to one-hot encoding for the output layer
     float[,] Y_onehot = OneHot(Y, Layers[^1].OutputSize);
@@ -49,42 +67,43 @@ public class NeuralNetwork
 
       // Backward for this layer: returns gradients and dA for previous layer
       var (dW, db, dA_prev) = layer.Backward(dA, prevActivation, batchSize);
-      layer.UpdateParameters(dW, db, learningRate, momentumBeta);
+      layer.UpdateParameters(dW, db, learningRate, momentumBeta, momentumType);
       if (i > 0)
         dA = dA_prev;
     }
   }
 
-  public void Train(float[,] X, int[] Y, float learningRate, float decayRate, int stepSize, int iterations, int batchSize = 64,
+  public void Train(float[,] X_train, int[] Y_train, float[,] X_val, int[] Y_val, float learningRate, float decayRate, int stepSize, int epochs, int batchSize = 64,
                   LearningRateScheduler.ScheduleType scheduleType = LearningRateScheduler.ScheduleType.Constant,
-                  float momentumBeta = 0f)
+                  float momentumBeta = 0f,
+                  MomentumType momentumType = MomentumType.Smoothed)
   {
     var epochTimer = Stopwatch.StartNew();
     // Track time between logs to compute per-epoch average accurately, even at iter=0
     long lastLogMs = 0L;
-    int lastLogIter = -1;
-    const int logEvery = 10;
-    int m = Y.Length;
+    int lastLogEpoch = -1;
+    int logEvery = TrainingSettings.LogEvery;
+    int m = Y_train.Length;
 
     // Initialize learning rate scheduler with provided decayRate & stepSize
     var scheduler = new LearningRateScheduler(scheduleType, learningRate, decayRate: decayRate, stepSize: stepSize);
 
     int batchesPerEpoch = (int)Math.Ceiling((double)m / batchSize);
 
-    for (int iter = 0; iter < iterations; iter++)
+    for (int epoch = 0; epoch < epochs; epoch++)
     {
       // Get current learning rate from scheduler
       float currentLearningRate = scheduler.GetLearningRate();
 
       // Shuffle data at the start of each epoch
-      int[] shuffledIndices = ShuffleIndices(m, iter);      
+      int[] shuffledIndices = ShuffleIndices(m, epoch);
       float epochLoss = 0f;
       int batchCount = 0;
 
       // Process each batch in the epoch
       for (int batchIndex = 0; batchIndex < batchesPerEpoch; batchIndex++)
       {
-        var (X_batch, Y_batch) =GetBatch(X, Y, shuffledIndices,batchSize, batchIndex);
+        var (X_batch, Y_batch) = GetBatch(X_train, Y_train, shuffledIndices, batchSize, batchIndex);
         int currentBatchSize = Y_batch.Length;
 
         // Forward pass
@@ -96,36 +115,51 @@ public class NeuralNetwork
         batchCount++;
 
         // Backward pass with current learning rate
-        Backward(X_batch, Y_batch, currentLearningRate, currentBatchSize, momentumBeta);
+        Backward(X_batch, Y_batch, currentLearningRate, currentBatchSize, momentumBeta, momentumType);
       }
 
       epochLoss /= batchCount;
 
       // Logging every 'logEvery' epochs
-      if (iter % logEvery == 0)
+      if (epoch % logEvery == 0)
       {
-        float[,] output = Forward(X);
-        int[] predictions = GetPredictions(output);
-        float acc = GetAccuracy(predictions, Y);
+        // Evaluate on validation set
+        float[,] valOutput = Forward(X_val);
+        int[] valPreds = GetPredictions(valOutput);
+        float valAcc = GetAccuracy(valPreds, Y_val);
+        // Evaluate on training set (could be subsampled for performance)
+        float trainAcc;
+        {
+          float[,] trainOutput = Forward(X_train);
+          int[] trainPreds = GetPredictions(trainOutput);
+          trainAcc = GetAccuracy(trainPreds, Y_train);
+        }
+
         // Compute ETA based on average epoch time since last log.
         long nowMs = epochTimer.ElapsedMilliseconds;
-        int epochsSinceLastLog = iter - lastLogIter; // at iter=0 => 1
+        int epochsSinceLastLog = epoch - lastLogEpoch; // at epoch=0 => 1
         long segmentMs = nowMs - lastLogMs;
         double avgEpochMs = epochsSinceLastLog > 0 ? (double)segmentMs / epochsSinceLastLog : 0.0;
-        int remainingEpochs = Math.Max(0, iterations - (iter + 1));
+        int remainingEpochs = Math.Max(0, epochs - (epoch + 1));
         double etaSeconds = (avgEpochMs * remainingEpochs) / 1000.0;
         var etaSpan = TimeSpan.FromSeconds(etaSeconds);
         int mins = (int)etaSpan.TotalMinutes;
         int secs = etaSpan.Seconds;
         // Update log anchors
         lastLogMs = nowMs;
-        lastLogIter = iter;
+        lastLogEpoch = epoch;
 
         // Include current learning rate in logging
-        Console.WriteLine($"Epoch {iter}, Loss: {epochLoss:F4}, Accuracy: {acc:P2}, " +
-                        $"LR: {currentLearningRate:E3}, " +
-                        $"Time {epochTimer.ElapsedMilliseconds / 1000}s, " +
-                        $"ETA: {mins}m {secs:0}s");
+        //   Console.WriteLine($"Epoch {iter}, Loss: {epochLoss:F4}, Train: {trainAcc:P2} | Val: {valAcc:P2}, " +
+        //                     $"LR: {currentLearningRate:E3}, " +
+        //                     $"Time {epochTimer.ElapsedMilliseconds / 1000}s, " +
+        //                     $"ETA: {mins}m {secs:0}s");
+        // }
+        Console.WriteLine($"Epoch {epoch}, Loss: {epochLoss:F4} | Train: {trainAcc:P2} | Val: {valAcc:P2}, " +
+                          $"LR: {currentLearningRate:E3}, " +
+                          (TrainingSettings.WeightDecay > 0 ? $"WD: {TrainingSettings.WeightDecay:E2}, " : "") +
+                          $"Time {epochTimer.ElapsedMilliseconds / 1000}s, " +
+                          $"ETA: {mins}m {secs:0}s");
       }
     }
   }
@@ -172,22 +206,7 @@ public class NeuralNetwork
     return oneHot;
   }
 
-  private float[,] ExtractBatch(float[,] X, int start, int batchSize)
-  {
-    int features = X.GetLength(0);
-    var batch = new float[features, batchSize];
-
-    for (int j = 0; j < batchSize; j++)
-    {
-      for (int i = 0; i < features; i++)
-      {
-        batch[i, j] = X[i, start + j];
-      }
-    }
-
-    return batch;
-  }
-  private (float[,] X_batch, int[] Y_batch) GetBatch(float[,] X, int[] Y,int[] shuffledIndices, int batchSize, int batchIndex)
+  private (float[,] X_batch, int[] Y_batch) GetBatch(float[,] X, int[] Y, int[] shuffledIndices, int batchSize, int batchIndex)
   {
     int m = Y.Length;
     int features = X.GetLength(0);
@@ -213,13 +232,13 @@ public class NeuralNetwork
     return (X_batch, Y_batch);
   }
 
-/*
- * You have 60,000 training examples. You want to randomize their order each epoch. Instead of moving all the data,
- * you just shuffle numbers on a sticky note that say which example to use next.
- * The function creates a list [0, 1, 2, ..., 59999] and scrambles it to something
- * like [342, 5, 18000, ...]. When making a batch, you look at this list and say "okay, first use example #342, then #5,
- * then #18000..."
- */
+  /*
+   * You have 60,000 training examples. You want to randomize their order each epoch. Instead of moving all the data,
+   * you just shuffle numbers on a sticky note that say which example to use next.
+   * The function creates a list [0, 1, 2, ..., 59999] and scrambles it to something
+   * like [342, 5, 18000, ...]. When making a batch, you look at this list and say "okay, first use example #342, then #5,
+   * then #18000..."
+   */
   private int[] ShuffleIndices(int m, int epoch)
   {
     int[] indices = Enumerable.Range(0, m).ToArray();

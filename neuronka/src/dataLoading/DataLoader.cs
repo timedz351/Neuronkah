@@ -26,6 +26,49 @@ public class DataLoader
         }
 
     }
+    public static ((float[,] X_train, int[] y_train), (float[,] X_val, int[] y_val))
+        SplitValidationSet(float[,] X, int[] y, float valRatio = 0.1f, int seed = 42)
+    {
+        var m = y.Length;
+        var valSize = (int)(m * valRatio);
+        var trainSize = m - valSize;
+        var features = X.GetLength(0);
+
+        // Create index permutation
+        var indices = Enumerable.Range(0, m).ToArray();
+        var rand = new Random(seed);
+        for (var i = m - 1; i > 0; i--)
+        {
+            var j = rand.Next(i + 1);
+            (indices[i], indices[j]) = (indices[j], indices[i]);
+        }
+
+        // Partition
+        var X_train = new float[features, trainSize];
+        var y_train = new int[trainSize];
+        var X_val = new float[features, valSize];
+        var y_val = new int[valSize];
+
+        // Fill train set (first 90% of shuffled indices)
+        for (var i = 0; i < trainSize; i++)
+        {
+            var origIdx = indices[i];
+            y_train[i] = y[origIdx];
+            for (var f = 0; f < features; f++)
+                X_train[f, i] = X[f, origIdx];
+        }
+
+        // Fill validation set (last 10% of shuffled indices)
+        for (var i = 0; i < valSize; i++)
+        {
+            var origIdx = indices[trainSize + i];
+            y_val[i] = y[origIdx];
+            for (var f = 0; f < features; f++)
+                X_val[f, i] = X[f, origIdx];
+        }
+
+        return ((X_train, y_train), (X_val, y_val));
+    }
 
     /// <summary>
     /// Loads images from CSV into a float[,] array of shape (numFeatures, numSamples)
