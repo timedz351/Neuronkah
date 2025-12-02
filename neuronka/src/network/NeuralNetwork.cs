@@ -55,7 +55,7 @@ public class NeuralNetwork
     }
   }
 
-  public void Train(float[,] X, int[] Y, float learningRate, float decayRate, int stepSize, int iterations, int batchSize = 64,
+  public void Train(float[,] X_train, int[] Y_train, float[,] X_val, int[] Y_val, float learningRate, float decayRate, int stepSize, int iterations, int batchSize = 64,
                   LearningRateScheduler.ScheduleType scheduleType = LearningRateScheduler.ScheduleType.Constant,
                   float momentumBeta = 0f)
   {
@@ -64,8 +64,10 @@ public class NeuralNetwork
     long lastLogMs = 0L;
     int lastLogIter = -1;
     const int logEvery = 10;
-    int m = Y.Length;
-
+    int m = Y_train.Length;
+    float bestValAcc = 0f;
+    int patience = 0;
+    
     // Initialize learning rate scheduler with provided decayRate & stepSize
     var scheduler = new LearningRateScheduler(scheduleType, learningRate, decayRate: decayRate, stepSize: stepSize);
 
@@ -84,7 +86,7 @@ public class NeuralNetwork
       // Process each batch in the epoch
       for (int batchIndex = 0; batchIndex < batchesPerEpoch; batchIndex++)
       {
-        var (X_batch, Y_batch) =GetBatch(X, Y, shuffledIndices,batchSize, batchIndex);
+        var (X_batch, Y_batch) =GetBatch(X_train, Y_train, shuffledIndices,batchSize, batchIndex);
         int currentBatchSize = Y_batch.Length;
 
         // Forward pass
@@ -104,9 +106,29 @@ public class NeuralNetwork
       // Logging every 'logEvery' epochs
       if (iter % logEvery == 0)
       {
-        float[,] output = Forward(X);
-        int[] predictions = GetPredictions(output);
-        float acc = GetAccuracy(predictions, Y);
+        // Evaluate on validation set (NO BACKWARD PASS!)
+        float[,] valOutput = Forward(X_val);
+        int[] valPreds = GetPredictions(valOutput);
+        float valAcc = GetAccuracy(valPreds, Y_val);
+            
+        // Evaluate on training set for comparison
+        float[,] trainOutput = Forward(X_train);
+        int[] trainPreds = GetPredictions(trainOutput);
+        float trainAcc = GetAccuracy(trainPreds, Y_train);
+
+        Console.WriteLine($"Epoch {iter} | Train: {trainAcc:P2} | Val: {valAcc:P2}");
+        // Early stopping
+        if (valAcc > bestValAcc + 0.001f)
+        {
+          bestValAcc = valAcc;
+          patience = 0;
+        }
+        else if (++patience >= 10)
+        {
+          Console.WriteLine($"Early stopping at epoch {iter}");
+          break;
+        }
+        
         // Compute ETA based on average epoch time since last log.
         long nowMs = epochTimer.ElapsedMilliseconds;
         int epochsSinceLastLog = iter - lastLogIter; // at iter=0 => 1
@@ -120,12 +142,12 @@ public class NeuralNetwork
         // Update log anchors
         lastLogMs = nowMs;
         lastLogIter = iter;
-
+        
         // Include current learning rate in logging
-        Console.WriteLine($"Epoch {iter}, Loss: {epochLoss:F4}, Accuracy: {acc:P2}, " +
-                        $"LR: {currentLearningRate:E3}, " +
-                        $"Time {epochTimer.ElapsedMilliseconds / 1000}s, " +
-                        $"ETA: {mins}m {secs:0}s");
+        Console.WriteLine($"Epoch {iter}, Loss: {epochLoss:F4}, Train: {trainAcc:P2} | Val: {valAcc:P2}, " +
+                          $"LR: {currentLearningRate:E3}, " +
+                          $"Time {epochTimer.ElapsedMilliseconds / 1000}s, " +
+                          $"ETA: {mins}m {secs:0}s");
       }
     }
   }
