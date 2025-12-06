@@ -21,7 +21,6 @@ internal class Program
         var ((trainImages, trainLabels), (valImages, valLabels)) =
             DataLoader.SplitValidationSet(trainData.Images, trainData.Labels, rand);
 
-        // Configure global training settings
         TrainingSettings.LogEvery = 1;
         TrainingSettings.BatchSize = 16;
         TrainingSettings.Epochs = 6;
@@ -32,6 +31,7 @@ internal class Program
         TrainingSettings.StepSize = 1; // for DecayRate
         TrainingSettings.ScheduleType = LearningRateScheduler.ScheduleType.StepDecay;
         TrainingSettings.WeightDecay = 1e-5f;
+
 
         var (testImages, testLabels) = testData;
         Console.WriteLine($"Loaded {trainLabels.GetLength(0)} images and labels for training");
