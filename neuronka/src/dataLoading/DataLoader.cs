@@ -27,7 +27,7 @@ public class DataLoader
 
     }
     public static ((float[,] X_train, int[] y_train), (float[,] X_val, int[] y_val))
-        SplitValidationSet(float[,] X, int[] y, float valRatio = 0.1f, int seed = 42)
+        SplitValidationSet(float[,] X, int[] y, Random rand, float valRatio = 0.1f)
     {
         var m = y.Length;
         var valSize = (int)(m * valRatio);
@@ -36,7 +36,6 @@ public class DataLoader
 
         // Create index permutation
         var indices = Enumerable.Range(0, m).ToArray();
-        var rand = new Random(seed);
         for (var i = m - 1; i > 0; i--)
         {
             var j = rand.Next(i + 1);

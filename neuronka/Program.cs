@@ -15,10 +15,11 @@ internal class Program
         var projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", ".."));
         var loaderTimer = Stopwatch.StartNew();
         var (trainData, testData) = LoadData(projectRoot);
+        var rand = new Random();
 
         // SPLIT TO TRAIN AND VALIDATION SET
         var ((trainImages, trainLabels), (valImages, valLabels)) =
-            DataLoader.SplitValidationSet(trainData.Images, trainData.Labels, 0.1f);
+            DataLoader.SplitValidationSet(trainData.Images, trainData.Labels, rand);
 
         // Configure global training settings
         TrainingSettings.LogEvery = 1;
@@ -43,7 +44,6 @@ internal class Program
         Console.WriteLine($"Batch size: {batchSize}, Training set: {trainLabels.GetLength(0)} samples");
 
         // CREATE NETWORK
-        var rand = new Random();
         var network = new NeuralNetwork();
         network.AddLayer(new Layer(rand, "hidden1", 784, 128, "relu"));
         // network.AddLayer(new Layer(rand, "hidden2", 256, 128));
