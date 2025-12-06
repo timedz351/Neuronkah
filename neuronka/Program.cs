@@ -22,15 +22,15 @@ internal class Program
 
         // Configure global training settings
         TrainingSettings.LogEvery = 1;
-        TrainingSettings.BatchSize = 32;
+        TrainingSettings.BatchSize = 16;
         TrainingSettings.Epochs = 6;
         TrainingSettings.MomentumType = MomentumType.Classical;
-        TrainingSettings.MomentumBeta = 0.95f;
-        TrainingSettings.LearningRate = 0.01f;
-        TrainingSettings.DecayRate = 0.9f;
-        TrainingSettings.StepSize = 1;
+        TrainingSettings.MomentumBeta = 0.9f;
+        TrainingSettings.LearningRate = 0.02f;
+        TrainingSettings.DecayRate = 0.5f;
+        TrainingSettings.StepSize = 1; // for DecayRate
         TrainingSettings.ScheduleType = LearningRateScheduler.ScheduleType.StepDecay;
-        TrainingSettings.WeightDecay = 5e-4f; // mild L2 regularization for better generalization
+        TrainingSettings.WeightDecay = 1e-5f;
 
         var (testImages, testLabels) = testData;
         Console.WriteLine($"Loaded {trainLabels.GetLength(0)} images and labels for training");
@@ -45,8 +45,8 @@ internal class Program
         // CREATE NETWORK
         var rand = new Random();
         var network = new NeuralNetwork();
-        network.AddLayer(new Layer(rand, "hidden1", 784, 256));
-        network.AddLayer(new Layer(rand, "hidden2", 256, 128));
+        network.AddLayer(new Layer(rand, "hidden1", 784, 128, "relu"));
+        // network.AddLayer(new Layer(rand, "hidden2", 256, 128));
         network.AddLayer(new Layer(rand, "output", 128, 10, "softmax"));
 
 

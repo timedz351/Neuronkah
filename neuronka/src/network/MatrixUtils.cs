@@ -8,7 +8,7 @@ public class MatrixUtils
     {
         int aRows = A.GetLength(0), aCols = A.GetLength(1);
         int bRows = B.GetLength(0), bCols = B.GetLength(1);
-        if (aCols != bRows) throw new ArgumentException("Incompatible shapes for Dot.");
+        // if (aCols != bRows) throw new ArgumentException("Incompatible shapes for Dot.");
 
         var result = new float[aRows, bCols];
 
@@ -104,5 +104,5 @@ public class MatrixUtils
         });
         return result;
     }
-    
+
 }
