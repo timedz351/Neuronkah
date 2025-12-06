@@ -20,7 +20,7 @@ internal class Program
         var ((trainImages, trainLabels), (valImages, valLabels)) =
             DataLoader.SplitValidationSet(trainData.Images, trainData.Labels, 0.1f);
 
-        // Configure global training settings (adjust as desired)
+        // Configure global training settings
         TrainingSettings.LogEvery = 1;
         TrainingSettings.BatchSize = 32;
         TrainingSettings.Epochs = 6;
@@ -52,7 +52,7 @@ internal class Program
 
         // TRAIN MODEL with learning rate scheduling
         var trainingTimer = Stopwatch.StartNew();
-        network.Train(trainImages, trainLabels, valImages, valLabels);
+        network.Train(trainImages, trainLabels, valImages, valLabels, rand);
         trainingTimer.Stop();
         Console.WriteLine($"Training completed in {trainingTimer.ElapsedMilliseconds} ms");
 

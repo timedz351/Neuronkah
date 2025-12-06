@@ -21,7 +21,7 @@ public class NeuralNetwork
     Layers.Add(layer);
   }
 
-  public void Train(float[,] X_train, int[] Y_train, float[,] X_val, int[] Y_val)
+  public void Train(float[,] X_train, int[] Y_train, float[,] X_val, int[] Y_val, Random rand)
   {
     Train(
       X_train,
@@ -32,6 +32,7 @@ public class NeuralNetwork
       TrainingSettings.DecayRate,
       TrainingSettings.StepSize,
       TrainingSettings.Epochs,
+      rand,
       TrainingSettings.BatchSize,
       TrainingSettings.ScheduleType,
       TrainingSettings.MomentumBeta,
@@ -73,7 +74,9 @@ public class NeuralNetwork
     }
   }
 
-  public void Train(float[,] X_train, int[] Y_train, float[,] X_val, int[] Y_val, float learningRate, float decayRate, int stepSize, int epochs, int batchSize = 64,
+  public void Train(float[,] X_train, int[] Y_train, float[,] X_val, int[] Y_val, float learningRate, float decayRate, int stepSize, int epochs,
+                  Random rand,
+                  int batchSize = 64,
                   LearningRateScheduler.ScheduleType scheduleType = LearningRateScheduler.ScheduleType.Constant,
                   float momentumBeta = 0f,
                   MomentumType momentumType = MomentumType.Smoothed)
@@ -96,7 +99,7 @@ public class NeuralNetwork
       float currentLearningRate = scheduler.GetLearningRate();
 
       // Shuffle data at the start of each epoch
-      int[] shuffledIndices = ShuffleIndices(m, epoch);
+      int[] shuffledIndices = ShuffleIndices(m, rand);
       float epochLoss = 0f;
       int batchCount = 0;
 
@@ -231,18 +234,10 @@ public class NeuralNetwork
 
     return (X_batch, Y_batch);
   }
-
-  /*
-   * You have 60,000 training examples. You want to randomize their order each epoch. Instead of moving all the data,
-   * you just shuffle numbers on a sticky note that say which example to use next.
-   * The function creates a list [0, 1, 2, ..., 59999] and scrambles it to something
-   * like [342, 5, 18000, ...]. When making a batch, you look at this list and say "okay, first use example #342, then #5,
-   * then #18000..."
-   */
-  private int[] ShuffleIndices(int m, int epoch)
+  
+  private int[] ShuffleIndices(int m, Random rand)
   {
     int[] indices = Enumerable.Range(0, m).ToArray();
-    var rand = new Random(42 + epoch); // Fixed seed + epoch for reproducibility
     for (int i = m - 1; i > 0; i--)
     {
       int j = rand.Next(i + 1);

@@ -9,7 +9,7 @@ public static class TrainingSettings
   public static int Epochs { get; set; } = 10;
   public static int BatchSize { get; set; } = 32;
   public static LearningRateScheduler.ScheduleType ScheduleType { get; set; } = LearningRateScheduler.ScheduleType.StepDecay;
-
+  
   // Momentum
   public static float MomentumBeta { get; set; } = 0.95f;
   public static MomentumType MomentumType { get; set; } = MomentumType.Classical;
